@@ -5,10 +5,10 @@
 const shapes: any = {
   "I-tetromino": [
     [
-      { fill: 1, color: "#2FC7EF" },
-      { fill: 1, color: "#2FC7EF" },
-      { fill: 1, color: "#2FC7EF" },
-      { fill: 1, color: "#2FC7EF" },
+      { fill: 1, color: "#2FC7EF", row: 0, col: 3 },
+      { fill: 1, color: "#2FC7EF", row: 0, col: 4 },
+      { fill: 1, color: "#2FC7EF", row: 0, col: 5 },
+      { fill: 1, color: "#2FC7EF", row: 0, col: 6 },
     ],
   ],
   //   { fill: true, color: "#2FC7EF"},

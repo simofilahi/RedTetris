@@ -8,12 +8,12 @@ export interface Square {
 class Game extends Shape {
   square: Square = { fill: 0, color: "" };
   map: Array<Array<Square>>;
+  shape: any;
 
   constructor() {
     super()
     this.map = this.mapGenerator();
     this.addShapeToMap();
-    this.draw();
   }
 
   * colGeneratore() {
@@ -32,37 +32,88 @@ class Game extends Shape {
     ];
   };
 
+  updateMap(): void {
+    this.clear();
+    for (let shapeRow: number = 0; shapeRow < this.shape.length; shapeRow++) {
+      for (let shapeCol: number = 0; shapeCol < this.shape[shapeRow].length; shapeCol++) {
+        this.map[this.shape[shapeRow][shapeCol].row][this.shape[shapeRow][shapeCol].col] = { ...this.shape[shapeRow][shapeCol] };
+      }
+    }
+    this.draw();
+  }
+
+  verticalChecker(): boolean | void {
+    for (let shapeRow: number = 0; shapeRow < this.shape.length; shapeRow++) {
+      for (let shapeCol: number = 0; shapeCol < this.shape[shapeRow].length; shapeCol++) {
+        if (this.shape[shapeRow][shapeCol].row + 1 > 9)
+          return true;
+      }
+    }
+    return false;
+  }
+
+  horizantalChecker(): boolean | void {
+    for (let shapeRow: number = 0; shapeRow < this.shape.length; shapeRow++) {
+      for (let shapeCol: number = 0; shapeCol < this.shape[shapeRow].length; shapeCol++) {
+        if (this.shape[shapeRow][shapeCol].col > 9 || this.shape[shapeRow][shapeCol].col < 0)
+          return true;
+      }
+    }
+    return false;
+  }
+
   addShapeToMap(): void {
-    const shape: any = this.getShape();
+    this.shape = this.getShape();
+    this.updateMap();
+  }
+
+  clear() {
     for (let mapRow: number = 0; mapRow < this.map.length; mapRow++) {
-      for (let shapeRow: number = 0; shapeRow < shape.length; shapeRow++) {
-        if (mapRow === shapeRow) {
-          for (let mapCol: number = 0; mapCol < this.map[mapRow].length; mapCol++) {
-            for (let shapeCol: number = 0; shapeCol < shape[shapeRow].length; shapeCol++) {
-              if (shapeCol === mapCol) {
-                this.map[shapeRow][shapeCol] = shape[shapeRow][shapeCol];
-                break;
-              }
-            }
-          }
-          break;
-        }
+      for (let mapCol: number = 0; mapCol < this.map[mapRow].length; mapCol++) {
+        this.map[mapRow][mapCol].fill = 0;
+        this.map[mapRow][mapCol].color = "";
       }
     }
   }
 
-  moveToLeft() { };
-
-  moveToRight() {
-
+  moveToLeft() {
+    if (!this.horizantalChecker()) {
+      for (let shapeRow: number = 0; shapeRow < this.shape.length; shapeRow++) {
+        for (let shapeCol: number = 0; shapeCol < this.shape[shapeRow].length; shapeCol++) {
+          this.shape[shapeRow][shapeCol].col--;
+        }
+      }
+      this.updateMap();
+    }
   };
 
-  moveDown() { };
+  moveToRight() {
+    if (!this.horizantalChecker()) {
+      for (let shapeRow: number = 0; shapeRow < this.shape.length; shapeRow++) {
+        for (let shapeCol: number = 0; shapeCol < this.shape[shapeRow].length; shapeCol++) {
+          this.shape[shapeRow][shapeCol].col++;
+        }
+      }
+      this.updateMap();
+    }
+  };
+
+  moveDown() {
+    if (!this.verticalChecker()) {
+      for (let shapeRow: number = 0; shapeRow < this.shape.length; shapeRow++) {
+        for (let shapeCol: number = 0; shapeCol < this.shape[shapeRow].length; shapeCol++) {
+          this.shape[shapeRow][shapeCol].row++;
+        }
+      }
+      this.updateMap();
+    }
+  };
 
   rotate() { };
 
   draw() {
-    this.map.forEach((row, index) => {
+    console.clear();
+    this.map.forEach((row) => {
       row.forEach((item) => process.stdout.write(item.fill.toString()));
       process.stdout.write("\n");
     });

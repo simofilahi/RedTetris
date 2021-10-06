@@ -14,6 +14,17 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
 var __generator = (this && this.__generator) || function (thisArg, body) {
     var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
     return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
@@ -76,7 +87,6 @@ var Game = /** @class */ (function (_super) {
         _this.square = { fill: 0, color: "" };
         _this.map = _this.mapGenerator();
         _this.addShapeToMap();
-        _this.draw();
         return _this;
     }
     Game.prototype.colGeneratore = function () {
@@ -123,34 +133,83 @@ var Game = /** @class */ (function (_super) {
         return __spreadArray([], __read(this.rowGenerator()), false);
     };
     ;
+    Game.prototype.updateMap = function () {
+        this.clear();
+        for (var shapeRow = 0; shapeRow < this.shape.length; shapeRow++) {
+            for (var shapeCol = 0; shapeCol < this.shape[shapeRow].length; shapeCol++) {
+                this.map[this.shape[shapeRow][shapeCol].row][this.shape[shapeRow][shapeCol].col] = __assign({}, this.shape[shapeRow][shapeCol]);
+            }
+        }
+        this.draw();
+    };
+    Game.prototype.verticalChecker = function () {
+        for (var shapeRow = 0; shapeRow < this.shape.length; shapeRow++) {
+            for (var shapeCol = 0; shapeCol < this.shape[shapeRow].length; shapeCol++) {
+                if (this.shape[shapeRow][shapeCol].row + 1 > 9)
+                    return true;
+            }
+        }
+        return false;
+    };
+    Game.prototype.horizantalChecker = function () {
+        for (var shapeRow = 0; shapeRow < this.shape.length; shapeRow++) {
+            for (var shapeCol = 0; shapeCol < this.shape[shapeRow].length; shapeCol++) {
+                if (this.shape[shapeRow][shapeCol].col + 1 > 9 || this.shape[shapeRow][shapeCol].col + 1 < 0)
+                    return true;
+            }
+        }
+        return false;
+    };
     Game.prototype.addShapeToMap = function () {
-        var shape = this.getShape();
+        this.shape = this.getShape();
+        this.updateMap();
+    };
+    Game.prototype.clear = function () {
         for (var mapRow = 0; mapRow < this.map.length; mapRow++) {
-            for (var shapeRow = 0; shapeRow < shape.length; shapeRow++) {
-                if (mapRow === shapeRow) {
-                    for (var mapCol = 0; mapCol < this.map[mapRow].length; mapCol++) {
-                        for (var shapeCol = 0; shapeCol < shape[shapeRow].length; shapeCol++) {
-                            if (shapeCol === mapCol) {
-                                this.map[shapeRow][shapeCol] = shape[shapeRow][shapeCol];
-                                break;
-                            }
-                        }
-                    }
-                    break;
-                }
+            for (var mapCol = 0; mapCol < this.map[mapRow].length; mapCol++) {
+                this.map[mapRow][mapCol].fill = 0;
+                this.map[mapRow][mapCol].color = "";
             }
         }
     };
-    Game.prototype.moveToLeft = function () { };
+    Game.prototype.moveToLeft = function () {
+        if (!this.horizantalChecker()) {
+            for (var shapeRow = 0; shapeRow < this.shape.length; shapeRow++) {
+                for (var shapeCol = 0; shapeCol < this.shape[shapeRow].length; shapeCol++) {
+                    this.shape[shapeRow][shapeCol].col--;
+                }
+            }
+            this.updateMap();
+        }
+    };
     ;
-    Game.prototype.moveToRight = function () { };
+    Game.prototype.moveToRight = function () {
+        if (!this.horizantalChecker()) {
+            for (var shapeRow = 0; shapeRow < this.shape.length; shapeRow++) {
+                for (var shapeCol = 0; shapeCol < this.shape[shapeRow].length; shapeCol++) {
+                    this.shape[shapeRow][shapeCol].col++;
+                }
+            }
+            this.updateMap();
+        }
+    };
     ;
-    Game.prototype.moveDown = function () { };
+    Game.prototype.moveDown = function () {
+        if (!this.verticalChecker()) {
+            for (var shapeRow = 0; shapeRow < this.shape.length; shapeRow++) {
+                for (var shapeCol = 0; shapeCol < this.shape[shapeRow].length; shapeCol++) {
+                    this.shape[shapeRow][shapeCol].row++;
+                }
+            }
+            this.updateMap();
+        }
+    };
     ;
     Game.prototype.rotate = function () { };
     ;
     Game.prototype.draw = function () {
-        this.map.forEach(function (row, index) {
+        console.clear();
+        this.map.forEach(function (row) {
             row.forEach(function (item) { return process.stdout.write(item.fill.toString()); });
             process.stdout.write("\n");
         });
