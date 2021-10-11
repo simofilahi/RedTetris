@@ -3,25 +3,55 @@
 // >
 
 const shapes: any = {
-  "I-tetromino": [
-    [
-      { fill: 1, color: "#2FC7EF", row: 0, col: 3 },
-      { fill: 1, color: "#2FC7EF", row: 0, col: 4 },
-      { fill: 1, color: "#2FC7EF", row: 0, col: 5 },
-      { fill: 1, color: "#2FC7EF", row: 0, col: 6 },
-    ],
-  ],
-  //   { fill: true, color: "#2FC7EF"},
-  //   { fill: true, color: "#2FC7EF"},
-  //   { fill: true, color: "#2FC7EF"},
-  //   { fill: true, color: "#2FC7EF"},
-  // ],
-  // "O-tetromino": { value: 1, color: "#F7D306" },
-  // "T-tetromino": { value: 1, color: "#AD4E9C" },
-  // "S-tetromino": { value: 1, color: "#43B642" },
-  // "Z-tetromino": { value: 1, color: "#EF1F2A" },
-  // "J-tetromino": { value: 1, color: "#5965AD" },
-  // "L-tetromino": { value: 1, color: "#EF7921" },
+  "I-tetromino": {
+    cords: { row: 0, col: 5 },
+    pieces: [
+      [{ fill: 1, color: "", value: "1" }, { fill: 1, color: "", value: "1" }, { fill: 1, color: "", value: "1" }, { fill: 1, color: "", value: "1" }],
+      [{ fill: 0, color: "", value: "0" }, { fill: 0, color: "", value: "0" }, { fill: 0, color: "", value: "0" }, { fill: 0, color: "", value: "0" }],
+    ]
+  },
+  "O-tetromino": {
+    cords: { row: 0, col: 5 },
+    pieces: [
+      [{ fill: 1, color: "", value: "1" }, { fill: 1, color: "", value: "1" }],
+      [{ fill: 1, color: "", value: "1" }, { fill: 1, color: "", value: "1" }],
+    ]
+  },
+  "T-tetromino": {
+    cords: { row: 0, col: 5 },
+    pieces: [
+      [{ fill: 0, color: "", value: "0" }, { fill: 1, color: "", value: "1" }, { fill: 0, color: "", value: "0" }],
+      [{ fill: 1, color: "", value: "1" }, { fill: 1, color: "", value: "1" }, { fill: 1, color: "", value: "1" }],
+    ]
+  },
+  "S-tetromino": {
+    cords: { row: 0, col: 5 },
+    pieces: [
+      [{ fill: 0, color: "", value: "0" }, { fill: 0, color: "", value: "0" }, { fill: 1, color: "", value: "1" }, { fill: 1, color: "", value: "1" }],
+      [{ fill: 1, color: "", value: "1" }, { fill: 1, color: "", value: "1" }, { fill: 0, color: "", value: "0" }, { fill: 0, color: "", value: "0" }],
+    ]
+  },
+  "Z-tetromino": {
+    cords: { row: 0, col: 5 },
+    pieces: [
+      [{ fill: 1, color: "", value: "1" }, { fill: 1, color: "", value: "1" }, { fill: 0, color: "", value: "0" }, { fill: 0, color: "", value: "0" },],
+      [{ fill: 0, color: "", value: "0" }, { fill: 0, color: "", value: "0" }, { fill: 1, color: "", value: "1" }, { fill: 1, color: "", value: "1" },],
+    ]
+  },
+  "J-tetromino": {
+    cords: { row: 0, col: 5 },
+    pieces: [
+      [{ fill: 1, color: "", value: "1" }, { fill: 0, color: "", value: "0" }, { fill: 0, color: "", value: "0" }],
+      [{ fill: 1, color: "", value: "1" }, { fill: 1, color: "", value: "1" }, { fill: 0, color: "", value: "1" }],
+    ]
+  },
+  "L-tetromino": {
+    cords: { row: 0, col: 5 },
+    pieces: [
+      [{ fill: 0, color: "", value: "0" }, { fill: 0, color: "", value: "0" }, { fill: 0, color: "", value: "1" }],
+      [{ fill: 1, color: "", value: "1" }, { fill: 1, color: "", value: "1" }, { fill: 0, color: "", value: "1" }],
+    ]
+  },
 };
 
 class Shape {
@@ -31,7 +61,9 @@ class Shape {
   }
 
   getShape = () => {
-    return shapes["I-tetromino"];
+    var keys = Object.keys(shapes);
+
+    return { ...shapes[keys[keys.length * Math.random() << 0]] };
   };
 }
 

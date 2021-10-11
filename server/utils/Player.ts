@@ -37,10 +37,12 @@ class Player extends Game {
   // };
 
   keyPressEvent(key: string) {
+    console.log({ key });
     if (key === "left") this.moveToLeft();
     else if (key === "right") this.moveToRight();
     else if (key === "down") this.moveDown();
-    else if (key === "rotate") this.rotate();
+    else if (key === "space") this.rotate();
+    else if (key === "a") this.addShapeToMap();
   }
 }
 

@@ -49,14 +49,17 @@ var Player = /** @class */ (function (_super) {
     //   });
     // };
     Player.prototype.keyPressEvent = function (key) {
+        console.log({ key: key });
         if (key === "left")
             this.moveToLeft();
         else if (key === "right")
             this.moveToRight();
         else if (key === "down")
             this.moveDown();
-        else if (key === "rotate")
+        else if (key === "space")
             this.rotate();
+        else if (key === "a")
+            this.addShapeToMap();
     };
     return Player;
 }(Game_1["default"]));

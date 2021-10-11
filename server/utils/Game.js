@@ -84,9 +84,11 @@ var Game = /** @class */ (function (_super) {
     __extends(Game, _super);
     function Game() {
         var _this = _super.call(this) || this;
-        _this.square = { fill: 0, color: "" };
+        _this.square = { fill: 0, color: "", value: "." };
         _this.map = _this.mapGenerator();
         _this.addShapeToMap();
+        _this.colNum = 10;
+        _this.rowNum = 10;
         return _this;
     }
     Game.prototype.colGeneratore = function () {
@@ -133,86 +135,135 @@ var Game = /** @class */ (function (_super) {
         return __spreadArray([], __read(this.rowGenerator()), false);
     };
     ;
+    Game.prototype.verticalSpaceChecker = function () {
+        var mapRowCount = this.map.length;
+        var shapeRowCount = this.shape.pieces.length;
+        var currRowIndex = (this.shape.cords.row + 1);
+        if ((shapeRowCount + currRowIndex) > mapRowCount)
+            return true;
+        return false;
+    };
+    Game.prototype.horizontalSpaceChecker = function (sign) {
+        var mapColCount = this.map[0].length;
+        var shapeMaxColCount = this.shape.pieces[0].length;
+        var currColIndex = this.shape.cords.col;
+        console.log({
+            mapColCount: mapColCount,
+            shapeMaxColCount: shapeMaxColCount,
+            currColIndex: currColIndex
+        });
+        if (sign == "+") {
+            if ((shapeMaxColCount + (currColIndex + 1)) > mapColCount)
+                return true;
+        }
+        else if (sign == "-") {
+            if ((currColIndex - 1) < 0)
+                return true;
+        }
+        return false;
+    };
     Game.prototype.updateMap = function () {
-        this.clear();
-        for (var shapeRow = 0; shapeRow < this.shape.length; shapeRow++) {
-            for (var shapeCol = 0; shapeCol < this.shape[shapeRow].length; shapeCol++) {
-                this.map[this.shape[shapeRow][shapeCol].row][this.shape[shapeRow][shapeCol].col] = __assign({}, this.shape[shapeRow][shapeCol]);
+        for (var shapeRow = 0; shapeRow < this.shape.pieces.length; shapeRow++) {
+            for (var shapeCol = 0; shapeCol < this.shape.pieces[shapeRow].length; shapeCol++) {
+                this.map[shapeRow + this.shape.cords.row][shapeCol + this.shape.cords.col] = __assign({}, this.shape.pieces[shapeRow][shapeCol]);
             }
         }
-        this.draw();
-    };
-    Game.prototype.verticalChecker = function () {
-        for (var shapeRow = 0; shapeRow < this.shape.length; shapeRow++) {
-            for (var shapeCol = 0; shapeCol < this.shape[shapeRow].length; shapeCol++) {
-                if (this.shape[shapeRow][shapeCol].row + 1 > 9)
-                    return true;
-            }
-        }
-        return false;
-    };
-    Game.prototype.horizantalChecker = function () {
-        for (var shapeRow = 0; shapeRow < this.shape.length; shapeRow++) {
-            for (var shapeCol = 0; shapeCol < this.shape[shapeRow].length; shapeCol++) {
-                if (this.shape[shapeRow][shapeCol].col + 1 > 9 || this.shape[shapeRow][shapeCol].col + 1 < 0)
-                    return true;
-            }
-        }
-        return false;
     };
     Game.prototype.addShapeToMap = function () {
         this.shape = this.getShape();
-        this.updateMap();
+        this.draw();
     };
-    Game.prototype.clear = function () {
-        for (var mapRow = 0; mapRow < this.map.length; mapRow++) {
-            for (var mapCol = 0; mapCol < this.map[mapRow].length; mapCol++) {
-                this.map[mapRow][mapCol].fill = 0;
-                this.map[mapRow][mapCol].color = "";
+    // clear() {
+    //   for (let mapRow: number = 0; mapRow < this.map.length; mapRow++) {
+    //     for (let mapCol: number = 0; mapCol < this.map[mapRow].length; mapCol++) {
+    //       if (!(mapRow === this.map.length)) {
+    //         this.map[mapRow][mapCol].fill = 0;
+    //         this.map[mapRow][mapCol].color = "";
+    //         this.map[mapRow][mapCol].value = "."
+    //       }
+    //     }
+    //   }
+    // }
+    Game.prototype.fakeMap = function () {
+        var mapCopy = __spreadArray([], __read(JSON.parse(JSON.stringify(this.map))), false);
+        for (var shapeRow = 0; shapeRow < this.shape.pieces.length; shapeRow++) {
+            for (var shapeCol = 0; shapeCol < this.shape.pieces[shapeRow].length; shapeCol++) {
+                mapCopy[shapeRow + this.shape.cords.row][shapeCol + this.shape.cords.col] = __assign({}, this.shape.pieces[shapeRow][shapeCol]);
             }
         }
+        return mapCopy;
     };
-    Game.prototype.moveToLeft = function () {
-        if (!this.horizantalChecker()) {
-            for (var shapeRow = 0; shapeRow < this.shape.length; shapeRow++) {
-                for (var shapeCol = 0; shapeCol < this.shape[shapeRow].length; shapeCol++) {
-                    this.shape[shapeRow][shapeCol].col--;
-                }
-            }
+    Game.prototype.draw = function () {
+        console.log("--------------------------------");
+        console.log("");
+        var mapCopy = this.fakeMap();
+        mapCopy.forEach(function (row) {
+            row.forEach(function (item) {
+                process.stdout.write(item.value);
+            });
+            process.stdout.write("\n");
+        });
+        console.log("");
+        console.log("--------------------------------");
+    };
+    ;
+    Game.prototype.moveDown = function () {
+        if (!this.verticalSpaceChecker()) {
+            this.shape.cords.row++;
+            this.draw();
+        }
+        else {
             this.updateMap();
+        }
+    };
+    ;
+    Game.prototype.moveToLeft = function () {
+        if (!this.horizontalSpaceChecker("-")) {
+            this.shape.cords.col--;
+            this.draw();
         }
     };
     ;
     Game.prototype.moveToRight = function () {
-        if (!this.horizantalChecker()) {
-            for (var shapeRow = 0; shapeRow < this.shape.length; shapeRow++) {
-                for (var shapeCol = 0; shapeCol < this.shape[shapeRow].length; shapeCol++) {
-                    this.shape[shapeRow][shapeCol].col++;
-                }
-            }
-            this.updateMap();
+        if (!this.horizontalSpaceChecker("+")) {
+            this.shape.cords.col++;
+            this.draw();
         }
     };
-    ;
-    Game.prototype.moveDown = function () {
-        if (!this.verticalChecker()) {
-            for (var shapeRow = 0; shapeRow < this.shape.length; shapeRow++) {
-                for (var shapeCol = 0; shapeCol < this.shape[shapeRow].length; shapeCol++) {
-                    this.shape[shapeRow][shapeCol].row++;
-                }
-            }
-            this.updateMap();
-        }
+    Game.prototype.fall = function () {
+        var _this = this;
+        setInterval(function () {
+            _this.moveDown();
+        }, 2000);
     };
-    ;
-    Game.prototype.rotate = function () { };
-    ;
-    Game.prototype.draw = function () {
-        console.clear();
-        this.map.forEach(function (row) {
-            row.forEach(function (item) { return process.stdout.write(item.fill.toString()); });
-            process.stdout.write("\n");
-        });
+    Game.prototype.collisionChecker = function () {
+        for (var shapeRow = 0; shapeRow < this.shape.pieces.length; shapeRow++) {
+            for (var shapeCol = 0; shapeCol < this.shape.pieces[shapeRow].length; shapeCol++) {
+                var col = shapeCol + this.shape.cords.col;
+                var row = shapeRow + this.shape.cords.row;
+                console.log({
+                    col: col,
+                    row: row
+                });
+                if ((col >= 10 || col < 0) || (row >= 10 || row < 0))
+                    return true;
+            }
+        }
+        return false;
+    };
+    Game.prototype.rotate = function () {
+        var matrix = [];
+        for (var shapeRow = 0; shapeRow < this.shape.pieces.length; shapeRow++) {
+            for (var shapeCol = 0; shapeCol < this.shape.pieces[shapeRow].length; shapeCol++) {
+                if (!matrix[shapeCol])
+                    matrix[shapeCol] = [];
+                matrix[shapeCol].unshift(this.shape.pieces[shapeRow][shapeCol]);
+            }
+        }
+        this.shape.pieces = matrix;
+        if (this.collisionChecker())
+            this.rotate();
+        this.draw();
     };
     ;
     return Game;
