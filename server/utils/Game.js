@@ -163,41 +163,43 @@ var Game = /** @class */ (function (_super) {
         return false;
     };
     Game.prototype.updateMap = function () {
+        this.clear();
         for (var shapeRow = 0; shapeRow < this.shape.pieces.length; shapeRow++) {
             for (var shapeCol = 0; shapeCol < this.shape.pieces[shapeRow].length; shapeCol++) {
                 this.map[shapeRow + this.shape.cords.row][shapeCol + this.shape.cords.col] = __assign({}, this.shape.pieces[shapeRow][shapeCol]);
             }
         }
+        this.draw();
     };
     Game.prototype.addShapeToMap = function () {
         this.shape = this.getShape();
-        this.draw();
+        this.updateMap();
     };
-    // clear() {
-    //   for (let mapRow: number = 0; mapRow < this.map.length; mapRow++) {
-    //     for (let mapCol: number = 0; mapCol < this.map[mapRow].length; mapCol++) {
-    //       if (!(mapRow === this.map.length)) {
-    //         this.map[mapRow][mapCol].fill = 0;
-    //         this.map[mapRow][mapCol].color = "";
-    //         this.map[mapRow][mapCol].value = "."
-    //       }
-    //     }
-    //   }
-    // }
-    Game.prototype.fakeMap = function () {
-        var mapCopy = __spreadArray([], __read(JSON.parse(JSON.stringify(this.map))), false);
-        for (var shapeRow = 0; shapeRow < this.shape.pieces.length; shapeRow++) {
-            for (var shapeCol = 0; shapeCol < this.shape.pieces[shapeRow].length; shapeCol++) {
-                mapCopy[shapeRow + this.shape.cords.row][shapeCol + this.shape.cords.col] = __assign({}, this.shape.pieces[shapeRow][shapeCol]);
+    Game.prototype.clear = function () {
+        for (var mapRow = 0; mapRow < this.map.length; mapRow++) {
+            for (var mapCol = 0; mapCol < this.map[mapRow].length; mapCol++) {
+                if (!this.map[mapRow][mapCol]["landed"]) {
+                    this.map[mapRow][mapCol].fill = 0;
+                    this.map[mapRow][mapCol].color = "";
+                    this.map[mapRow][mapCol].value = ".";
+                }
             }
         }
-        return mapCopy;
+    };
+    Game.prototype.setShapeLanded = function () {
+        for (var mapRow = 0; mapRow < this.map.length; mapRow++) {
+            for (var mapCol = 0; mapCol < this.map[mapRow].length; mapCol++) {
+                if (this.map[mapRow][mapCol].value !== ".") {
+                    console.log("Here");
+                    this.map[mapRow][mapCol]["landed"] = true;
+                }
+            }
+        }
     };
     Game.prototype.draw = function () {
         console.log("--------------------------------");
         console.log("");
-        var mapCopy = this.fakeMap();
-        mapCopy.forEach(function (row) {
+        this.map.forEach(function (row) {
             row.forEach(function (item) {
                 process.stdout.write(item.value);
             });
@@ -208,35 +210,42 @@ var Game = /** @class */ (function (_super) {
     };
     ;
     Game.prototype.moveDown = function () {
-        if (!this.verticalSpaceChecker()) {
+        if (!this.verticalSpaceChecker() && !this.neighborShapesCollision()) {
             this.shape.cords.row++;
-            this.draw();
+            this.updateMap();
         }
         else {
-            this.updateMap();
+            this.setShapeLanded();
         }
     };
     ;
     Game.prototype.moveToLeft = function () {
         if (!this.horizontalSpaceChecker("-")) {
             this.shape.cords.col--;
-            this.draw();
+            this.updateMap();
         }
     };
     ;
     Game.prototype.moveToRight = function () {
         if (!this.horizontalSpaceChecker("+")) {
             this.shape.cords.col++;
-            this.draw();
+            this.updateMap();
         }
     };
-    Game.prototype.fall = function () {
-        var _this = this;
-        setInterval(function () {
-            _this.moveDown();
-        }, 2000);
+    Game.prototype.neighborShapesCollision = function () {
+        for (var mapRow = 0; mapRow < this.map.length; mapRow++) {
+            for (var mapCol = 0; mapCol < this.map[mapRow].length; mapCol++) {
+                console.log(this.map[mapRow][mapCol]["landed"]);
+                console.log({ mapRow: mapRow });
+                var currShapeRow = (this.shape.pieces.length + this.shape.cords.row);
+                console.log(currShapeRow);
+                if (this.map[mapRow][mapCol]["landed"] && (mapRow === currShapeRow))
+                    return true;
+            }
+        }
+        return false;
     };
-    Game.prototype.collisionChecker = function () {
+    Game.prototype.mapEdgesCollisionChecker = function () {
         for (var shapeRow = 0; shapeRow < this.shape.pieces.length; shapeRow++) {
             for (var shapeCol = 0; shapeCol < this.shape.pieces[shapeRow].length; shapeCol++) {
                 var col = shapeCol + this.shape.cords.col;
@@ -261,9 +270,9 @@ var Game = /** @class */ (function (_super) {
             }
         }
         this.shape.pieces = matrix;
-        if (this.collisionChecker())
+        if (this.mapEdgesCollisionChecker())
             this.rotate();
-        this.draw();
+        this.updateMap();
     };
     ;
     return Game;

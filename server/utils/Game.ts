@@ -69,48 +69,53 @@ class Game extends Shape {
   }
 
   updateMap(): void {
+    this.clear();
+
     for (let shapeRow: number = 0; shapeRow < this.shape.pieces.length; shapeRow++) {
       for (let shapeCol: number = 0; shapeCol < this.shape.pieces[shapeRow].length; shapeCol++) {
         this.map[shapeRow + this.shape.cords.row][shapeCol + this.shape.cords.col] = { ...this.shape.pieces[shapeRow][shapeCol] };
       }
     }
+    this.draw();
   }
 
   addShapeToMap(): void {
     this.shape = this.getShape();
-    this.draw();
+    this.updateMap();
   }
 
-  // clear() {
-  //   for (let mapRow: number = 0; mapRow < this.map.length; mapRow++) {
-  //     for (let mapCol: number = 0; mapCol < this.map[mapRow].length; mapCol++) {
-  //       if (!(mapRow === this.map.length)) {
-  //         this.map[mapRow][mapCol].fill = 0;
-  //         this.map[mapRow][mapCol].color = "";
-  //         this.map[mapRow][mapCol].value = "."
-  //       }
-  //     }
-  //   }
-  // }
-
-  fakeMap() {
-    const mapCopy = [...JSON.parse(JSON.stringify(this.map))];
-    for (let shapeRow: number = 0; shapeRow < this.shape.pieces.length; shapeRow++) {
-      for (let shapeCol: number = 0; shapeCol < this.shape.pieces[shapeRow].length; shapeCol++) {
-        mapCopy[shapeRow + this.shape.cords.row][shapeCol + this.shape.cords.col] = { ...this.shape.pieces[shapeRow][shapeCol] };
+  clear() {
+    for (let mapRow: number = 0; mapRow < this.map.length; mapRow++) {
+      for (let mapCol: number = 0; mapCol < this.map[mapRow].length; mapCol++) {
+        if (!this.map[mapRow][mapCol]["landed"]) {
+          this.map[mapRow][mapCol].fill = 0;
+          this.map[mapRow][mapCol].color = "";
+          this.map[mapRow][mapCol].value = "."
+        }
       }
     }
-    return mapCopy;
+  }
+
+  setShapeLanded() {
+    for (let mapRow: number = 0; mapRow < this.map.length; mapRow++) {
+      for (let mapCol: number = 0; mapCol < this.map[mapRow].length; mapCol++) {
+        if (this.map[mapRow][mapCol].value !== ".") {
+          console.log("Here");
+          this.map[mapRow][mapCol]["landed"] = true;
+        }
+
+      }
+    }
   }
 
   draw() {
     console.log("--------------------------------");
     console.log("");
-    const mapCopy = this.fakeMap();
-    mapCopy.forEach((row) => {
+    this.map.forEach((row) => {
       row.forEach((item) => {
         process.stdout.write(item.value)
-      });
+      }
+      );
       process.stdout.write("\n");
     });
     console.log("");
@@ -118,11 +123,11 @@ class Game extends Shape {
   };
 
   moveDown() {
-    if (!this.verticalSpaceChecker()) {
+    if (!this.verticalSpaceChecker() && !this.neighborShapesCollision()) {
       this.shape.cords.row++;
-      this.draw();
-    } else {
       this.updateMap();
+    } else {
+      this.setShapeLanded();
     }
   };
 
@@ -131,7 +136,7 @@ class Game extends Shape {
       !this.horizontalSpaceChecker("-")
     ) {
       this.shape.cords.col--;
-      this.draw();
+      this.updateMap();
     }
 
   };
@@ -139,17 +144,35 @@ class Game extends Shape {
   moveToRight() {
     if (!this.horizontalSpaceChecker("+")) {
       this.shape.cords.col++;
-      this.draw();
+      this.updateMap();
     }
   }
 
-  fall() {
-    setInterval(() => {
-      this.moveDown();
-    }, 2000)
+
+
+
+  neighborShapesCollision(): boolean {
+    for (let mapRow: number = 0; mapRow < this.map.length; mapRow++) {
+      for (let mapCol: number = 0; mapCol < this.map[mapRow].length; mapCol++) {
+        const lastShapeRowIndx = this.shape.length;
+        for (let shapeCol: number = 0; shapeCol < this.shape[lastShapeRowIndx]; shapeCol++) {
+          if (this.shape[lastShapeRowIndx][shapeCol])
+        }
+        // console.log(this.map[mapRow][mapCol]["landed"]);
+        // console.log({ mapRow });
+        // const currShapeRow = (this.shape.pieces.length + this.shape.cords.row);
+        // console.log(currShapeRow);
+
+        // if (this.map[mapRow][mapCol]["landed"] && (mapRow === currShapeRow))
+        //   return true;
+      }
+    }
+    return false;
   }
 
-  collisionChecker(): boolean {
+
+
+  mapEdgesCollisionChecker(): boolean {
     for (let shapeRow: number = 0; shapeRow < this.shape.pieces.length; shapeRow++) {
       for (let shapeCol: number = 0; shapeCol < this.shape.pieces[shapeRow].length; shapeCol++) {
         const col = shapeCol + this.shape.cords.col;
@@ -175,10 +198,17 @@ class Game extends Shape {
       }
     }
     this.shape.pieces = matrix;
-    if (this.collisionChecker())
+    if (this.mapEdgesCollisionChecker())
       this.rotate();
-    this.draw();
+    this.updateMap();
   };
+
+  // fall() {
+  //   setInterval(() => {
+  //     this.moveDown();
+  //   }, 2000)
+  // }
+
 
 }
 
