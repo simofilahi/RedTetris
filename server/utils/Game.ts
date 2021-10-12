@@ -398,10 +398,14 @@ class Game extends Shape {
         const row = shapeRow + shapeCpy.cords.row;
         const col = shapeCol + shapeCpy.cords.col;
 
-        console.log("insided => ", this.map[row][col]?.value);
+        console.log("insided => ", row);
         if (
-          this.map[row][col]?.status == "landed" &&
-          (this.map[row][col]?.value != "." || this.map[row][col]?.value != "0")
+          row >= this.rowCount ||
+          col >= this.colCount ||
+          col < 0 ||
+          (this.map[row][col]?.status == "landed" &&
+            (this.map[row][col]?.value != "." ||
+              this.map[row][col]?.value != "0"))
         ) {
           console.log("before true");
           return true;

@@ -414,7 +414,7 @@ var Game = /** @class */ (function (_super) {
         return false;
     };
     Game.prototype.rotationCollision = function () {
-        var _a, _b, _c, _d;
+        var _a, _b, _c;
         var shapeCpy = __assign({}, JSON.parse(JSON.stringify(this.shape)));
         console.log("I'm here");
         for (var shapeRow = 0; shapeRow < shapeCpy.pieces.length; shapeRow++) {
@@ -423,9 +423,13 @@ var Game = /** @class */ (function (_super) {
                    POSITION IN THE MAP THAT THE SAQURE OF SHAPE WILL BE FIT IN */
                 var row = shapeRow + shapeCpy.cords.row;
                 var col = shapeCol + shapeCpy.cords.col;
-                console.log("insided => ", (_a = this.map[row][col]) === null || _a === void 0 ? void 0 : _a.value);
-                if (((_b = this.map[row][col]) === null || _b === void 0 ? void 0 : _b.status) == "landed" &&
-                    (((_c = this.map[row][col]) === null || _c === void 0 ? void 0 : _c.value) != "." || ((_d = this.map[row][col]) === null || _d === void 0 ? void 0 : _d.value) != "0")) {
+                console.log("insided => ", row);
+                if (row >= this.rowCount ||
+                    col >= this.colCount ||
+                    col < 0 ||
+                    (((_a = this.map[row][col]) === null || _a === void 0 ? void 0 : _a.status) == "landed" &&
+                        (((_b = this.map[row][col]) === null || _b === void 0 ? void 0 : _b.value) != "." ||
+                            ((_c = this.map[row][col]) === null || _c === void 0 ? void 0 : _c.value) != "0"))) {
                     console.log("before true");
                     return true;
                 }
