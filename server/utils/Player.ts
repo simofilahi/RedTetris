@@ -37,7 +37,6 @@ class Player extends Game {
   // };
 
   keyPressEvent(key: string) {
-    console.log({ key });
     if (key === "left") this.moveToLeft();
     else if (key === "right") this.moveToRight();
     else if (key === "down") this.moveDown();

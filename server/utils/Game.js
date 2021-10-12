@@ -79,16 +79,15 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
 };
 exports.__esModule = true;
 var Shape_1 = require("./Shape");
-;
 var Game = /** @class */ (function (_super) {
     __extends(Game, _super);
     function Game() {
         var _this = _super.call(this) || this;
-        _this.square = { fill: 0, color: "", value: "." };
+        _this.square = { status: "", color: "", value: "." };
         _this.map = _this.mapGenerator();
         _this.addShapeToMap();
-        _this.colNum = 10;
-        _this.rowNum = 10;
+        _this.colCount = 10;
+        _this.rowCount = 10;
         return _this;
     }
     Game.prototype.colGeneratore = function () {
@@ -134,68 +133,54 @@ var Game = /** @class */ (function (_super) {
     Game.prototype.mapGenerator = function () {
         return __spreadArray([], __read(this.rowGenerator()), false);
     };
-    ;
-    Game.prototype.verticalSpaceChecker = function () {
-        var mapRowCount = this.map.length;
-        var shapeRowCount = this.shape.pieces.length;
-        var currRowIndex = (this.shape.cords.row + 1);
-        if ((shapeRowCount + currRowIndex) > mapRowCount)
-            return true;
-        return false;
-    };
-    Game.prototype.horizontalSpaceChecker = function (sign) {
-        var mapColCount = this.map[0].length;
-        var shapeMaxColCount = this.shape.pieces[0].length;
-        var currColIndex = this.shape.cords.col;
-        console.log({
-            mapColCount: mapColCount,
-            shapeMaxColCount: shapeMaxColCount,
-            currColIndex: currColIndex
-        });
-        if (sign == "+") {
-            if ((shapeMaxColCount + (currColIndex + 1)) > mapColCount)
-                return true;
-        }
-        else if (sign == "-") {
-            if ((currColIndex - 1) < 0)
-                return true;
-        }
-        return false;
-    };
+    // ADD SHAPE TO MAP
     Game.prototype.updateMap = function () {
         this.clear();
         for (var shapeRow = 0; shapeRow < this.shape.pieces.length; shapeRow++) {
             for (var shapeCol = 0; shapeCol < this.shape.pieces[shapeRow].length; shapeCol++) {
-                this.map[shapeRow + this.shape.cords.row][shapeCol + this.shape.cords.col] = __assign({}, this.shape.pieces[shapeRow][shapeCol]);
+                var row = shapeRow + this.shape.cords.row;
+                var col = shapeCol + this.shape.cords.col;
+                try {
+                    if (this.map[row][col].value != "0" ||
+                        this.map[row][col].value != ".")
+                        this.map[row][col] = __assign({}, JSON.parse(JSON.stringify(this.shape.pieces[shapeRow][shapeCol])));
+                }
+                catch (_a) {
+                    return;
+                }
             }
         }
         this.draw();
     };
+    // GOT RANDOM SHAPE AND ADD IT INTO MAP
     Game.prototype.addShapeToMap = function () {
-        this.shape = this.getShape();
+        this.shape = __assign({}, JSON.parse(JSON.stringify(this.getShape())));
         this.updateMap();
     };
+    // CLEAR THE MAP EXPECEPT FOR LANDED SHAPES
     Game.prototype.clear = function () {
         for (var mapRow = 0; mapRow < this.map.length; mapRow++) {
             for (var mapCol = 0; mapCol < this.map[mapRow].length; mapCol++) {
-                if (!this.map[mapRow][mapCol]["landed"]) {
-                    this.map[mapRow][mapCol].fill = 0;
+                if (this.map[mapRow][mapCol]["status"] === "active") {
+                    this.map[mapRow][mapCol].status = "";
                     this.map[mapRow][mapCol].color = "";
                     this.map[mapRow][mapCol].value = ".";
                 }
             }
         }
     };
+    // SET LANDED VARIABLE TO TRUE OF A SHAPE
     Game.prototype.setShapeLanded = function () {
         for (var mapRow = 0; mapRow < this.map.length; mapRow++) {
             for (var mapCol = 0; mapCol < this.map[mapRow].length; mapCol++) {
                 if (this.map[mapRow][mapCol].value !== ".") {
-                    console.log("Here");
-                    this.map[mapRow][mapCol]["landed"] = true;
+                    console.log("LANDED FUNCTIONS");
+                    this.map[mapRow][mapCol]["status"] = "landed";
                 }
             }
         }
     };
+    // DRAW MAP
     Game.prototype.draw = function () {
         console.log("--------------------------------");
         console.log("");
@@ -208,58 +193,148 @@ var Game = /** @class */ (function (_super) {
         console.log("");
         console.log("--------------------------------");
     };
-    ;
+    // MOVE SHAPE DOWN
     Game.prototype.moveDown = function () {
-        if (!this.verticalSpaceChecker() && !this.neighborShapesCollision()) {
+        /* IF THERE NO COLLISOIN OR NOT THE END OF MAP
+           KEEP INCREMENT ROW AND MOVE SHAPE DOWN
+           ELSE SET THE ACTIVE SHAPE AS LANDED AND ADD NEW
+           SHAPE TO THE MAP
+        */
+        if (!this.neighborShapesCollision("down")) {
             this.shape.cords.row++;
             this.updateMap();
         }
         else {
             this.setShapeLanded();
+            this.addShapeToMap();
         }
     };
-    ;
+    // MOVE SHAPE TO THE LEFT
     Game.prototype.moveToLeft = function () {
-        if (!this.horizontalSpaceChecker("-")) {
+        if (!this.neighborShapesCollision("left")) {
             this.shape.cords.col--;
             this.updateMap();
         }
+        else {
+            this.draw();
+        }
     };
-    ;
+    // MOVE SHAPE TO THE RIGHT
     Game.prototype.moveToRight = function () {
-        if (!this.horizontalSpaceChecker("+")) {
+        if (!this.neighborShapesCollision("right")) {
             this.shape.cords.col++;
             this.updateMap();
         }
+        else {
+            this.draw();
+        }
     };
-    Game.prototype.neighborShapesCollision = function () {
+    // VERIFY TOP SIDE COLLISSION OF A SHAPE
+    Game.prototype.topCollission = function (neighborPostion, currPosition, rowIndex) {
+        // VERIFY THE TOP POINT IS EMPTY OR THE END OF MAP ROWS
+        if ((neighborPostion &&
+            neighborPostion["status"] === "landed" &&
+            neighborPostion["value"] != "0" &&
+            currPosition["value"] != "0") ||
+            rowIndex <= 0)
+            return true;
+        return false;
+    };
+    // VERIFY RIGHT SIDE COLLISSION OF A SHAPE
+    Game.prototype.rightCollission = function (neighborPostion, currPosition, colIndex) {
+        // VERIFY RIGHT POINT IS EMPTY OR THE END OF MAP COLUMNS;
+        console.log({ colIndex: colIndex });
+        console.log({ colCount: this.colCount });
+        if ((neighborPostion &&
+            (neighborPostion === null || neighborPostion === void 0 ? void 0 : neighborPostion.status) === "landed" &&
+            neighborPostion.value != "0" &&
+            currPosition.value != "0") ||
+            colIndex >= this.colCount)
+            return true;
+        return false;
+    };
+    // VERIFY LEFT SIDE COLLISSION OF A SHAPE
+    Game.prototype.leftCollission = function (neighborPostion, currPosition, colIndex) {
+        // VERIFY THE LEFT POINT IS EMPTY OR THE END OF MAP COLUMNS
+        if (((neighborPostion === null || neighborPostion === void 0 ? void 0 : neighborPostion.status) === "landed" &&
+            neighborPostion.value != "0" &&
+            currPosition.value != "0") ||
+            colIndex < 0)
+            return true;
+        return false;
+    };
+    // VERIFY BOTTOM SIDE COLLISSION OF A SHAPE
+    Game.prototype.bottomCollission = function (neighborPostion, currPosition, rowIndex) {
+        // VERIFY THE BOTTOM POINT IS EMPTY OR THE END OF MAP ROWS
+        console.log("bottom Collission function");
+        console.log({ rowIndex: rowIndex });
+        console.log({ rowCount: this.rowCount });
+        if (((neighborPostion === null || neighborPostion === void 0 ? void 0 : neighborPostion.status) === "landed" &&
+            neighborPostion.value != "0" &&
+            currPosition.value != "0") ||
+            rowIndex >= this.rowCount)
+            return true;
+        return false;
+    };
+    Game.prototype.rotationCollisionCheck = function (mapRow, mapCol) {
+        console.log("Rotation =====> ");
+        if (this.rightCollission(this.map[mapRow][mapCol + 1], this.map[mapRow][mapCol], mapCol + 1)) {
+            console.log("right Collission");
+            return true;
+        }
+        else if (this.leftCollission(this.map[mapRow][mapCol - 1], this.map[mapRow][mapCol], mapCol - 1)) {
+            console.log("left Collission");
+            return true;
+        }
+        else if (this.bottomCollission(this.map[mapRow === this.rowCount - 1 ? mapRow : mapRow + 1][mapCol], this.map[mapRow][mapCol], mapRow + 1)) {
+            console.log("down collission");
+            return true;
+        }
+        else if (this.topCollission(this.map[mapRow === 0 ? mapRow : mapRow - 1][mapCol], this.map[mapRow][mapCol], mapRow - 1)) {
+            console.log("down collission");
+            return true;
+        }
+        else if (this.bottomCollission(this.map[mapRow === this.rowCount - 1 ? mapRow : mapRow + 1][mapCol], this.map[mapRow][mapCol], mapRow + 1)) {
+            console.log("down collission");
+            return true;
+        }
+        return false;
+    };
+    Game.prototype.neighborShapesCollision = function (sign) {
+        // ITERRATE TROUGH THE MAP AND LOOK FOR ACTIVE SHAPE THEN START CHECKING FOR NEIGHBOR COLLESION
         for (var mapRow = 0; mapRow < this.map.length; mapRow++) {
             for (var mapCol = 0; mapCol < this.map[mapRow].length; mapCol++) {
-                console.log(this.map[mapRow][mapCol]["landed"]);
-                console.log({ mapRow: mapRow });
-                var currShapeRow = (this.shape.pieces.length + this.shape.cords.row);
-                console.log(currShapeRow);
-                if (this.map[mapRow][mapCol]["landed"] && (mapRow === currShapeRow))
-                    return true;
+                // console.log(sign, this.map[mapRow][mapCol]);
+                // DO NEIGHBOR COLLISON VERIFICATION JUST FOR CURRENT SHAPE IN OUR CASE MEAN ACTIVE SHAPE
+                if (this.map[mapRow][mapCol]["status"] === "active" && sign) {
+                    console.log("**************");
+                    console.log({ mapRow: mapRow });
+                    console.log("**************");
+                    // SIGN JUST USED IN CASE LEFT OR RIGHT ARROW PRESSED
+                    if (sign === "right" &&
+                        this.rightCollission(this.map[mapRow][mapCol + 1], this.map[mapRow][mapCol], mapCol + 1)) {
+                        console.log("right Collission");
+                        return true;
+                    }
+                    else if (sign === "left" &&
+                        this.leftCollission(this.map[mapRow][mapCol - 1], this.map[mapRow][mapCol], mapCol - 1)) {
+                        console.log("left Collission");
+                        return true;
+                    }
+                    else if (this.bottomCollission(this.map[mapRow === this.rowCount - 1 ? mapRow : mapRow + 1][mapCol], this.map[mapRow][mapCol], mapRow + 1)) {
+                        console.log("down Collission");
+                        return true;
+                    }
+                }
+                else if (this.map[mapRow][mapCol]["status"] === "active") {
+                    if (this.rotationCollisionCheck(mapRow, mapCol))
+                        return true;
+                }
             }
         }
         return false;
     };
-    Game.prototype.mapEdgesCollisionChecker = function () {
-        for (var shapeRow = 0; shapeRow < this.shape.pieces.length; shapeRow++) {
-            for (var shapeCol = 0; shapeCol < this.shape.pieces[shapeRow].length; shapeCol++) {
-                var col = shapeCol + this.shape.cords.col;
-                var row = shapeRow + this.shape.cords.row;
-                console.log({
-                    col: col,
-                    row: row
-                });
-                if ((col >= 10 || col < 0) || (row >= 10 || row < 0))
-                    return true;
-            }
-        }
-        return false;
-    };
+    // DO ROTATION 90 DEGREE TO ACTIVE SHAPE
     Game.prototype.rotate = function () {
         var matrix = [];
         for (var shapeRow = 0; shapeRow < this.shape.pieces.length; shapeRow++) {
@@ -270,11 +345,12 @@ var Game = /** @class */ (function (_super) {
             }
         }
         this.shape.pieces = matrix;
-        if (this.mapEdgesCollisionChecker())
+        if (this.neighborShapesCollision(undefined)) {
+            this.updateMap();
             this.rotate();
+        }
         this.updateMap();
     };
-    ;
     return Game;
 }(Shape_1["default"]));
 exports["default"] = Game;

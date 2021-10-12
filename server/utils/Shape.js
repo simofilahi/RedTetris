@@ -18,50 +18,104 @@ var shapes = {
     "I-tetromino": {
         cords: { row: 0, col: 5 },
         pieces: [
-            [{ fill: 1, color: "", value: "1" }, { fill: 1, color: "", value: "1" }, { fill: 1, color: "", value: "1" }, { fill: 1, color: "", value: "1" }],
-            [{ fill: 0, color: "", value: "0" }, { fill: 0, color: "", value: "0" }, { fill: 0, color: "", value: "0" }, { fill: 0, color: "", value: "0" }],
+            [
+                { color: "", value: "1" },
+                { color: "", value: "1" },
+                { color: "", value: "1" },
+                { color: "", value: "1" },
+            ],
         ]
     },
     "O-tetromino": {
         cords: { row: 0, col: 5 },
         pieces: [
-            [{ fill: 1, color: "", value: "2" }, { fill: 1, color: "", value: "2" }],
-            [{ fill: 1, color: "", value: "2" }, { fill: 1, color: "", value: "2" }],
+            [
+                { color: "", value: "2" },
+                { color: "", value: "2" },
+            ],
+            [
+                { color: "", value: "2" },
+                { color: "", value: "2" },
+            ],
         ]
     },
     "T-tetromino": {
         cords: { row: 0, col: 5 },
         pieces: [
-            [{ fill: 0, color: "", value: "0" }, { fill: 1, color: "", value: "3" }, { fill: 0, color: "", value: "0" }],
-            [{ fill: 1, color: "", value: "3" }, { fill: 1, color: "", value: "3" }, { fill: 1, color: "", value: "3" }],
+            [
+                { color: "", value: "0" },
+                { color: "", value: "3" },
+                { color: "", value: "0" },
+            ],
+            [
+                { color: "", value: "3" },
+                { color: "", value: "3" },
+                { color: "", value: "3" },
+            ],
         ]
     },
     "S-tetromino": {
         cords: { row: 0, col: 5 },
         pieces: [
-            [{ fill: 0, color: "", value: "0" }, { fill: 0, color: "", value: "0" }, { fill: 1, color: "", value: "4" }, { fill: 1, color: "", value: "4" }],
-            [{ fill: 1, color: "", value: "4" }, { fill: 1, color: "", value: "4" }, { fill: 0, color: "", value: "0" }, { fill: 0, color: "", value: "0" }],
+            [
+                { color: "", value: "0" },
+                { color: "", value: "0" },
+                { state: 1, color: "", value: "4" },
+                { state: 1, color: "", value: "4" },
+            ],
+            [
+                { color: "", value: "4" },
+                { color: "", value: "4" },
+                { color: "", value: "0" },
+                { color: "", value: "0" },
+            ],
         ]
     },
     "Z-tetromino": {
         cords: { row: 0, col: 5 },
         pieces: [
-            [{ fill: 1, color: "", value: "5" }, { fill: 1, color: "", value: "5" }, { fill: 0, color: "", value: "0" }, { fill: 0, color: "", value: "0" },],
-            [{ fill: 0, color: "", value: "0" }, { fill: 0, color: "", value: "0" }, { fill: 1, color: "", value: "5" }, { fill: 1, color: "", value: "5" },],
+            [
+                { color: "", value: "5" },
+                { color: "", value: "5" },
+                { color: "", value: "0" },
+                { color: "", value: "0" },
+            ],
+            [
+                { color: "", value: "0" },
+                { color: "", value: "0" },
+                { color: "", value: "5" },
+                { color: "", value: "5" },
+            ],
         ]
     },
     "J-tetromino": {
         cords: { row: 0, col: 5 },
         pieces: [
-            [{ fill: 1, color: "", value: "6" }, { fill: 0, color: "", value: "0" }, { fill: 0, color: "", value: "0" }],
-            [{ fill: 1, color: "", value: "6" }, { fill: 1, color: "", value: "6" }, { fill: 0, color: "", value: "6" }],
+            [
+                { color: "", value: "6" },
+                { color: "", value: "0" },
+                { color: "", value: "0" },
+            ],
+            [
+                { color: "", value: "6" },
+                { color: "", value: "6" },
+                { color: "", value: "6" },
+            ],
         ]
     },
     "L-tetromino": {
         cords: { row: 0, col: 5 },
         pieces: [
-            [{ fill: 0, color: "", value: "0" }, { fill: 0, color: "", value: "0" }, { fill: 0, color: "", value: "7" }],
-            [{ fill: 1, color: "", value: "7" }, { fill: 1, color: "", value: "7" }, { fill: 0, color: "", value: "7" }],
+            [
+                { color: "", value: "0" },
+                { color: "", value: "0" },
+                { color: "", value: "7" },
+            ],
+            [
+                { color: "", value: "7" },
+                { color: "", value: "7" },
+                { color: "", value: "7" },
+            ],
         ]
     }
 };
@@ -69,7 +123,13 @@ var Shape = /** @class */ (function () {
     function Shape() {
         this.getShape = function () {
             var keys = Object.keys(shapes);
-            return __assign({}, shapes[keys[keys.length * Math.random() << 0]]);
+            var shape = shapes[keys[(keys.length * Math.random()) << 0]];
+            shape.pieces.forEach(function (element) {
+                element.forEach(function (item) {
+                    item.status = "active";
+                });
+            });
+            return __assign({}, JSON.parse(JSON.stringify(shape)));
         };
         this.index = 0;
     }

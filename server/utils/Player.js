@@ -49,7 +49,6 @@ var Player = /** @class */ (function (_super) {
     //   });
     // };
     Player.prototype.keyPressEvent = function (key) {
-        console.log({ key: key });
         if (key === "left")
             this.moveToLeft();
         else if (key === "right")
