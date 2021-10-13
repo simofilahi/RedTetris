@@ -13,21 +13,26 @@ class Game extends Shape {
   shape: any;
   colCount: number;
   rowCount: number;
+  gravityInterval: number;
+  gameOver: boolean;
 
   constructor() {
     super();
-    this.map = this.mapGenerator();
-    this.addShapeToMap();
     this.colCount = 10;
     this.rowCount = 10;
+    this.map = this.mapGenerator();
+    this.addShapeToMap();
+    this.gravityInterval = 1000;
+    this.gameOver = false;
   }
 
   *colGeneratore() {
-    for (let i: number = 0; i < 10; i++) yield this.square;
+    for (let i: number = 0; i < this.colCount; i++) yield this.square;
   }
 
   *rowGenerator() {
-    for (let i: number = 0; i < 10; i++) yield [...this.colGeneratore()];
+    for (let i: number = 0; i < this.rowCount; i++)
+      yield [...this.colGeneratore()];
   }
 
   mapGenerator(): Array<Array<Square>> {
@@ -35,7 +40,7 @@ class Game extends Shape {
   }
 
   // DROP FULL LINES
-  dropLines(): void {
+  dropRows(): void {
     // INITIALZE NEW MAP
     const newMap = [];
 
@@ -56,7 +61,7 @@ class Game extends Shape {
         }
       }
       // VERIFY IF ROW NOT FULL PUSH IT TO NEW MAP
-      if (count < 9) newMap.push(this.map[mapRow]);
+      if (count < this.rowCount) newMap.push(this.map[mapRow]);
 
       // RESET COUNT
       count = 0;
@@ -74,14 +79,18 @@ class Game extends Shape {
 
   // ADD SHAPE TO MAP
   updateMap(): void {
-    // this.dropLines();
+    // DROP ROWS THAT ARE FULL
+    this.dropRows();
+
+    // CLEAR THE MAP
     this.clear();
-    // ITERRATE TROUGH SHAPE ARRAY
+    // ITERATE TROUGH ROWS OF CURRENT SHAPE
     for (
       let shapeRow: number = 0;
       shapeRow < this.shape.pieces.length;
       shapeRow++
     ) {
+      // ITERATE TROUGH ROWS OF CURRENT SHAPE
       for (
         let shapeCol: number = 0;
         shapeCol < this.shape.pieces[shapeRow].length;
@@ -104,6 +113,7 @@ class Game extends Shape {
           };
       }
     }
+    // DRAW THE MAP
     this.draw();
   }
 
@@ -128,6 +138,11 @@ class Game extends Shape {
 
   // SET LANDED VARIABLE TO TRUE OF A SHAPE
   setShapeLanded() {
+    /* 
+      IF THE CURRENT SHAPE LANDED SET
+      ITS STATUS TO LANDED SO THE CLEAR
+      FUNC CAN'T REMOVE IT FROM THE MAP
+    */
     for (let mapRow: number = 0; mapRow < this.map.length; mapRow++) {
       for (let mapCol: number = 0; mapCol < this.map[mapRow].length; mapCol++) {
         if (this.map[mapRow][mapCol].value !== ".") {
@@ -135,21 +150,18 @@ class Game extends Shape {
         }
       }
     }
-    console.log("LANDED FUNCTIONS");
   }
 
   // DRAW MAP
   draw() {
     console.log("--------------------------------");
-    console.log({ "cords.col ": this.shape.cords.col });
     console.log("--------------------------------");
     console.log("");
     console.log("--------------------------------");
     console.log("");
     this.map.forEach((row) => {
       row.forEach((item) => {
-        if (item.value === "0") process.stdout.write(".");
-        else process.stdout.write(item.value);
+        process.stdout.write(item.value);
       });
       process.stdout.write("\n");
     });
@@ -159,23 +171,31 @@ class Game extends Shape {
 
   // MOVE SHAPE DOWN
   moveDown() {
-    /* IF THERE NO COLLISOIN OR NOT THE END OF MAP
+    /* IF THERE ARE NO COLLISOINS
        KEEP INCREMENT ROW AND MOVE SHAPE DOWN
-       ELSE SET THE ACTIVE SHAPE AS LANDED AND ADD NEW
+       ELSE SET THE CURRENT SHAPE AS LANDED AND ADD NEW
        SHAPE TO THE MAP
     */
-    this.shape.cords.row++;
-    if (!this.collisionDetecter()) {
-      this.updateMap();
+    if (!this.gameOver) {
+      this.shape.cords.row++;
+      if (!this.collisionDetecter()) {
+        this.updateMap();
+      } else {
+        this.shape.cords.row--;
+        this.setShapeLanded();
+        this.addShapeToMap();
+      }
+      if (this.gameOver) console.log("Game Over!");
     } else {
-      this.shape.cords.row--;
-      this.setShapeLanded();
-      this.addShapeToMap();
+      console.log("Game Over!");
     }
   }
 
   // MOVE SHAPE TO THE LEFT
   moveToLeft() {
+    /* IF THERE ARE NO COLLISOINS
+       KEEP DEINCREMENT COL AND MOVE SHAPE TO LEFT
+    */
     this.shape.cords.col--;
     if (!this.collisionDetecter()) {
       this.updateMap();
@@ -187,6 +207,9 @@ class Game extends Shape {
 
   // MOVE SHAPE TO THE RIGHT
   moveToRight() {
+    /* IF THERE ARE NO COLLISOINS
+       KEEP INCREMENT COL AND MOVE SHAPE TO RIGHT
+    */
     this.shape.cords.col++;
     if (!this.collisionDetecter()) {
       this.updateMap();
@@ -220,17 +243,27 @@ class Game extends Shape {
         // DATA OF CURRENT POINT IN MAP
         const currtPointData = this.map[row] ? this.map[row][col] : undefined;
 
-        // DATA OF NEW POINT THAT WILL BE ADD IN MAP
+        // DATA OF NEW POINT THAT WILL BE ADDED IN MAP
         const shapePointData = shapeCpy.pieces[shapeRow][shapeCol];
 
         /*
             - CHECK FOR X AXIS COLLISION
             - CEHCK FOR Y AXIS COLLISION
             - CHECK FOR NEIBHOUR COLLISION
+            - HANDLE COLLISION IF MAP IS FULL VERTICALLY
         */
+        console.log({
+          row,
+          col,
+          currtPointData,
+        });
         if (col >= this.colCount || col < 0) {
           return true;
-        } else if (row >= this.rowCount || row < 0) {
+        } else if (row >= this.rowCount) {
+          return true;
+        } else if (row === 1 && currtPointData?.status == "landed") {
+          console.log("map full");
+          this.gameOver = true;
           return true;
         } else if (
           currtPointData?.status == "landed" &&
@@ -238,6 +271,7 @@ class Game extends Shape {
           currtPointData?.value != "." &&
           shapePointData?.value != "0"
         ) {
+          console.log("collision happen");
           return true;
         }
       }
@@ -286,8 +320,15 @@ class Game extends Shape {
     if (this.collisionDetecter()) {
       this.rotate();
     }
+    /* IF NEW ROTATION FITTED DRAW IT INTO THE MAP*/
     this.updateMap();
   }
+
+  // falling() {
+  //   setInterval(() => {
+  //     this.moveDown();
+  //   }, this.gravityInterval);
+  // }
 }
 
 // // VERIFY TOP SIDE COLLISSION OF A SHAPE

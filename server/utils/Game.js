@@ -84,10 +84,12 @@ var Game = /** @class */ (function (_super) {
     function Game() {
         var _this = _super.call(this) || this;
         _this.square = { status: "", color: "", value: "." };
-        _this.map = _this.mapGenerator();
-        _this.addShapeToMap();
         _this.colCount = 10;
         _this.rowCount = 10;
+        _this.map = _this.mapGenerator();
+        _this.addShapeToMap();
+        _this.gravityInterval = 1000;
+        _this.gameOver = false;
         return _this;
     }
     Game.prototype.colGeneratore = function () {
@@ -98,7 +100,7 @@ var Game = /** @class */ (function (_super) {
                     i = 0;
                     _a.label = 1;
                 case 1:
-                    if (!(i < 10)) return [3 /*break*/, 4];
+                    if (!(i < this.colCount)) return [3 /*break*/, 4];
                     return [4 /*yield*/, this.square];
                 case 2:
                     _a.sent();
@@ -118,7 +120,7 @@ var Game = /** @class */ (function (_super) {
                     i = 0;
                     _a.label = 1;
                 case 1:
-                    if (!(i < 10)) return [3 /*break*/, 4];
+                    if (!(i < this.rowCount)) return [3 /*break*/, 4];
                     return [4 /*yield*/, __spreadArray([], __read(this.colGeneratore()), false)];
                 case 2:
                     _a.sent();
@@ -134,7 +136,7 @@ var Game = /** @class */ (function (_super) {
         return __spreadArray([], __read(this.rowGenerator()), false);
     };
     // DROP FULL LINES
-    Game.prototype.dropLines = function () {
+    Game.prototype.dropRows = function () {
         var _a;
         // INITIALZE NEW MAP
         var newMap = [];
@@ -152,7 +154,7 @@ var Game = /** @class */ (function (_super) {
                 }
             }
             // VERIFY IF ROW NOT FULL PUSH IT TO NEW MAP
-            if (count < 9)
+            if (count < this.rowCount)
                 newMap.push(this.map[mapRow]);
             // RESET COUNT
             count = 0;
@@ -168,10 +170,13 @@ var Game = /** @class */ (function (_super) {
     // ADD SHAPE TO MAP
     Game.prototype.updateMap = function () {
         var _a, _b;
-        // this.dropLines();
+        // DROP ROWS THAT ARE FULL
+        this.dropRows();
+        // CLEAR THE MAP
         this.clear();
-        // ITERRATE TROUGH SHAPE ARRAY
+        // ITERATE TROUGH ROWS OF CURRENT SHAPE
         for (var shapeRow = 0; shapeRow < this.shape.pieces.length; shapeRow++) {
+            // ITERATE TROUGH ROWS OF CURRENT SHAPE
             for (var shapeCol = 0; shapeCol < this.shape.pieces[shapeRow].length; shapeCol++) {
                 /* CALCULATE THE ROW AND COL OF
                    POSITION IN THE MAP THAT THE SAQURE OF SHAPE WILL BE FIT IN */
@@ -183,6 +188,7 @@ var Game = /** @class */ (function (_super) {
                     this.map[row][col] = __assign({}, JSON.parse(JSON.stringify(this.shape.pieces[shapeRow][shapeCol])));
             }
         }
+        // DRAW THE MAP
         this.draw();
     };
     // GOT RANDOM SHAPE AND ADD IT INTO MAP
@@ -204,6 +210,11 @@ var Game = /** @class */ (function (_super) {
     };
     // SET LANDED VARIABLE TO TRUE OF A SHAPE
     Game.prototype.setShapeLanded = function () {
+        /*
+          IF THE CURRENT SHAPE LANDED SET
+          ITS STATUS TO LANDED SO THE CLEAR
+          FUNC CAN'T REMOVE IT FROM THE MAP
+        */
         for (var mapRow = 0; mapRow < this.map.length; mapRow++) {
             for (var mapCol = 0; mapCol < this.map[mapRow].length; mapCol++) {
                 if (this.map[mapRow][mapCol].value !== ".") {
@@ -211,22 +222,17 @@ var Game = /** @class */ (function (_super) {
                 }
             }
         }
-        console.log("LANDED FUNCTIONS");
     };
     // DRAW MAP
     Game.prototype.draw = function () {
         console.log("--------------------------------");
-        console.log({ "cords.col ": this.shape.cords.col });
         console.log("--------------------------------");
         console.log("");
         console.log("--------------------------------");
         console.log("");
         this.map.forEach(function (row) {
             row.forEach(function (item) {
-                if (item.value === "0")
-                    process.stdout.write(".");
-                else
-                    process.stdout.write(item.value);
+                process.stdout.write(item.value);
             });
             process.stdout.write("\n");
         });
@@ -235,23 +241,33 @@ var Game = /** @class */ (function (_super) {
     };
     // MOVE SHAPE DOWN
     Game.prototype.moveDown = function () {
-        /* IF THERE NO COLLISOIN OR NOT THE END OF MAP
+        /* IF THERE ARE NO COLLISOINS
            KEEP INCREMENT ROW AND MOVE SHAPE DOWN
-           ELSE SET THE ACTIVE SHAPE AS LANDED AND ADD NEW
+           ELSE SET THE CURRENT SHAPE AS LANDED AND ADD NEW
            SHAPE TO THE MAP
         */
-        this.shape.cords.row++;
-        if (!this.collisionDetecter()) {
-            this.updateMap();
+        if (!this.gameOver) {
+            this.shape.cords.row++;
+            if (!this.collisionDetecter()) {
+                this.updateMap();
+            }
+            else {
+                this.shape.cords.row--;
+                this.setShapeLanded();
+                this.addShapeToMap();
+            }
+            if (this.gameOver)
+                console.log("Game Over!");
         }
         else {
-            this.shape.cords.row--;
-            this.setShapeLanded();
-            this.addShapeToMap();
+            console.log("Game Over!");
         }
     };
     // MOVE SHAPE TO THE LEFT
     Game.prototype.moveToLeft = function () {
+        /* IF THERE ARE NO COLLISOINS
+           KEEP DEINCREMENT COL AND MOVE SHAPE TO LEFT
+        */
         this.shape.cords.col--;
         if (!this.collisionDetecter()) {
             this.updateMap();
@@ -263,6 +279,9 @@ var Game = /** @class */ (function (_super) {
     };
     // MOVE SHAPE TO THE RIGHT
     Game.prototype.moveToRight = function () {
+        /* IF THERE ARE NO COLLISOINS
+           KEEP INCREMENT COL AND MOVE SHAPE TO RIGHT
+        */
         this.shape.cords.col++;
         if (!this.collisionDetecter()) {
             this.updateMap();
@@ -273,70 +292,86 @@ var Game = /** @class */ (function (_super) {
         }
     };
     Game.prototype.collisionDetecter = function () {
-        var _a, _b;
+        // DEEP COPY OF CURRENT SHAPE
         var shapeCpy = __assign({}, JSON.parse(JSON.stringify(this.shape)));
-        // console.log("I'm here");
+        // ITERATE TROUGH ROWS OF CURRENT SHAPE
         for (var shapeRow = 0; shapeRow < shapeCpy.pieces.length; shapeRow++) {
+            // ITERATE TROUGH COLS OF CURRENT SHAPE
             for (var shapeCol = 0; shapeCol < shapeCpy.pieces[shapeRow].length; shapeCol++) {
                 /* CALCULATE THE ROW AND COL OF
-                   POSITION IN THE MAP THAT THE SAQURE OF THE CURRENT SHAPE WILL BE FIT IN */
+                   POSITION IN THE MAP THAT THE  POINT OF THE CURRENT SHAPE WILL BE FIT IN */
                 var row = shapeRow + shapeCpy.cords.row;
                 var col = shapeCol + shapeCpy.cords.col;
-                try {
-                    // DATA OF CURRENT POINT IN MAP
-                    var currtPointData = this.map[row] ? this.map[row][col] : undefined;
-                    // DATA OF NEW POINT THAT WILL BE ADD IN MAP
-                    var shapePointData = shapeCpy.pieces[shapeRow][shapeCol];
-                    // console.log("insided => ", row);
-                    /*
+                // DATA OF CURRENT POINT IN MAP
+                var currtPointData = this.map[row] ? this.map[row][col] : undefined;
+                // DATA OF NEW POINT THAT WILL BE ADDED IN MAP
+                var shapePointData = shapeCpy.pieces[shapeRow][shapeCol];
+                /*
                     - CHECK FOR X AXIS COLLISION
                     - CEHCK FOR Y AXIS COLLISION
                     - CHECK FOR NEIBHOUR COLLISION
-                  */
-                    console.log({
-                        row: row,
-                        col: col
-                    });
-                    if (col >= this.colCount || col < 0) {
-                        console.log("X AXIS COLLISION", col);
-                        return true;
-                    }
-                    else if (row >= this.rowCount || row < 0) {
-                        console.log("Y AXIS COLLISION", row);
-                        return true;
-                    }
-                    else if ((currtPointData === null || currtPointData === void 0 ? void 0 : currtPointData.status) == "landed" &&
-                        (currtPointData === null || currtPointData === void 0 ? void 0 : currtPointData.value) != "0" &&
-                        (currtPointData === null || currtPointData === void 0 ? void 0 : currtPointData.value) != "." &&
-                        (shapePointData === null || shapePointData === void 0 ? void 0 : shapePointData.value) != "0") {
-                        console.log("collision happen for that reasion");
-                        console.log("status :", (_a = this.map[row][col]) === null || _a === void 0 ? void 0 : _a.status);
-                        console.log("value :", (_b = this.map[row][col]) === null || _b === void 0 ? void 0 : _b.value);
-                        return true;
-                    }
+                    - HANDLE COLLISION IF MAP IS FULL VERTICALLY
+                */
+                console.log({
+                    row: row,
+                    col: col,
+                    currtPointData: currtPointData
+                });
+                if (col >= this.colCount || col < 0) {
+                    return true;
                 }
-                catch (_c) {
-                    return false;
+                else if (row >= this.rowCount) {
+                    return true;
+                }
+                else if (row === 1 && (currtPointData === null || currtPointData === void 0 ? void 0 : currtPointData.status) == "landed") {
+                    console.log("map full");
+                    this.gameOver = true;
+                    return true;
+                }
+                else if ((currtPointData === null || currtPointData === void 0 ? void 0 : currtPointData.status) == "landed" &&
+                    (currtPointData === null || currtPointData === void 0 ? void 0 : currtPointData.value) != "0" &&
+                    (currtPointData === null || currtPointData === void 0 ? void 0 : currtPointData.value) != "." &&
+                    (shapePointData === null || shapePointData === void 0 ? void 0 : shapePointData.value) != "0") {
+                    console.log("collision happen");
+                    return true;
                 }
             }
         }
-        console.log("OUT");
+        // IN CASE THERE NO COLLISION
         return false;
     };
-    // DO ROTATION 90 DEGREE TO ACTIVE SHAPE
+    // ROTATION 90 DEGREE TO CURRENT SHAPE
     Game.prototype.rotate = function () {
+        // THIS ARRAY WILL HOLD ARRAYS THAT REPRESONT ROWS OF A CURRENT SHAPE
         var matrix = [];
+        // ITERATE TROUGH ROWS OF CURRENT SHAPE
         for (var shapeRow = 0; shapeRow < this.shape.pieces.length; shapeRow++) {
+            // ITERATE TROUGH COLS OF CURRENT SHAPE
             for (var shapeCol = 0; shapeCol < this.shape.pieces[shapeRow].length; shapeCol++) {
+                /*
+                  - ADD ARRAY INSIDE MATRIX IF NOT ALREADY THERE
+                  - THE NUMBER OF ARRAYS THAT WILL BE IN MATRIX
+                    DEPENDS ON THE COUNT OF COLS IN CURRENT SHAPE ARRAY.
+                  - EACH ARRAY CREATED WE WILL PUSH INTO IT SHAPE[ROW][COL] DATA OF CURRENT SHAPES
+                  - THE ARRAY INSIDE MATRIX WILL BE USED AS STACK DATA STRUCTURE
+                  - EACH TIME WE ADD DATA TO THE ARRAYS OF MATRIX WILL BE ADDED AT INDEX 0
+                */
                 if (!matrix[shapeCol])
                     matrix[shapeCol] = [];
                 matrix[shapeCol].unshift(this.shape.pieces[shapeRow][shapeCol]);
             }
         }
+        // COPY NEW ROTATED SHAPE INTO OLD SHAPE VARIABLE
         this.shape.pieces = __spreadArray([], __read(JSON.parse(JSON.stringify(matrix))), false);
+        /*
+          - EACH TIME THERE IS A COLLISION DETECT THE FUNCTION
+            WILL CALL IT SELF TO KEEP ROTATING SHAPE UNTIL
+            GOT THE FITTED ROTATION
+        */
         if (this.collisionDetecter()) {
             this.rotate();
         }
+        /* IF NEW ROTATION FITTED DRAW IT INTO THE MAP*/
         this.updateMap();
     };
     return Game;
