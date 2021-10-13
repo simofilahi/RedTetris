@@ -207,11 +207,11 @@ var Game = /** @class */ (function (_super) {
         for (var mapRow = 0; mapRow < this.map.length; mapRow++) {
             for (var mapCol = 0; mapCol < this.map[mapRow].length; mapCol++) {
                 if (this.map[mapRow][mapCol].value !== ".") {
-                    console.log("LANDED FUNCTIONS");
                     this.map[mapRow][mapCol]["status"] = "landed";
                 }
             }
         }
+        console.log("LANDED FUNCTIONS");
     };
     // DRAW MAP
     Game.prototype.draw = function () {
@@ -240,198 +240,83 @@ var Game = /** @class */ (function (_super) {
            ELSE SET THE ACTIVE SHAPE AS LANDED AND ADD NEW
            SHAPE TO THE MAP
         */
-        if (!this.neighborShapesCollision("down")) {
-            this.shape.cords.row++;
+        this.shape.cords.row++;
+        if (!this.collisionDetecter()) {
             this.updateMap();
         }
         else {
+            this.shape.cords.row--;
             this.setShapeLanded();
             this.addShapeToMap();
         }
     };
     // MOVE SHAPE TO THE LEFT
     Game.prototype.moveToLeft = function () {
-        if (!this.neighborShapesCollision("left")) {
-            this.shape.cords.col--;
+        this.shape.cords.col--;
+        if (!this.collisionDetecter()) {
             this.updateMap();
         }
         else {
+            this.shape.cords.col++;
             this.draw();
         }
     };
     // MOVE SHAPE TO THE RIGHT
     Game.prototype.moveToRight = function () {
-        if (!this.neighborShapesCollision("right")) {
-            this.shape.cords.col++;
+        this.shape.cords.col++;
+        if (!this.collisionDetecter()) {
             this.updateMap();
         }
         else {
+            this.shape.cords.col--;
             this.draw();
         }
     };
-    // VERIFY TOP SIDE COLLISSION OF A SHAPE
-    Game.prototype.topCollission = function (neighborPostion, currPosition, rowIndex) {
-        // VERIFY THE TOP POINT IS EMPTY OR THE END OF MAP ROWS
-        if ((neighborPostion &&
-            neighborPostion["status"] === "landed" &&
-            neighborPostion["value"] != "0" &&
-            currPosition["value"] != "0") ||
-            rowIndex <= 0)
-            return true;
-        return false;
-    };
-    // VERIFY RIGHT SIDE COLLISSION OF A SHAPE
-    Game.prototype.rightCollission = function (neighborPostion, currPosition, colIndex) {
-        /*
-        - VERIFY NEIHBOR POINT ITS STATUS LANDED OR NOT
-        - VERIFY NEIHBOR POINT IS IT EMPTY OR THE END OF MAP COLUMNS
-        - VERIFY THE VALUE OF CURRENT POINT IF IS IT DIFFRENT THAN ZERO
-        */
-        console.log("right collision");
-        console.log({ colIndex: colIndex });
-        console.log({ colCount: this.colCount });
-        console.log({ "neibghour-pos": neighborPostion === null || neighborPostion === void 0 ? void 0 : neighborPostion.status });
-        console.log({ "neibghour-value": neighborPostion === null || neighborPostion === void 0 ? void 0 : neighborPostion.value });
-        console.log({ "curr-pos": currPosition.value });
-        if (((neighborPostion === null || neighborPostion === void 0 ? void 0 : neighborPostion.status) === "landed" &&
-            (neighborPostion === null || neighborPostion === void 0 ? void 0 : neighborPostion.value) != "0" &&
-            currPosition.value != "0") ||
-            colIndex >= this.colCount) {
-            return true;
-        }
-        return false;
-    };
-    // VERIFY LEFT SIDE COLLISSION OF A SHAPE
-    Game.prototype.leftCollission = function (neighborPostion, currPosition, colIndex) {
-        // VERIFY THE LEFT POINT IS EMPTY OR THE END OF MAP COLUMNS
-        if (((neighborPostion === null || neighborPostion === void 0 ? void 0 : neighborPostion.status) === "landed" &&
-            (neighborPostion === null || neighborPostion === void 0 ? void 0 : neighborPostion.value) != "0" &&
-            currPosition.value != "0") ||
-            colIndex < 0)
-            return true;
-        return false;
-    };
-    // VERIFY BOTTOM SIDE COLLISSION OF A SHAPE
-    Game.prototype.bottomCollission = function (neighborPostion, currPosition, rowIndex) {
-        // VERIFY THE BOTTOM POINT IS EMPTY OR THE END OF MAP ROWS
-        // console.log("bottom Collission function");
-        // console.log({ rowIndex });
-        // console.log({ rowCount: this.rowCount });
-        if (((neighborPostion === null || neighborPostion === void 0 ? void 0 : neighborPostion.status) === "landed" &&
-            neighborPostion.value != "0" &&
-            currPosition.value != "0") ||
-            rowIndex >= this.rowCount)
-            return true;
-        return false;
-    };
-    // // ROTATION MOVEMENT COLLISION CHECKER
-    // rotationCollisionChecker(mapRow: number, mapCol: number) {
-    //   console.log("Rotation =====> ");
-    //   if (
-    //     this.rightCollission(
-    //       this.map[mapRow][mapCol + 1],
-    //       this.map[mapRow][mapCol],
-    //       mapCol + 1
-    //     )
-    //   ) {
-    //     console.log("right Collission");
-    //     return true;
-    //   } if (
-    //     this.leftCollission(
-    //       this.map[mapRow][mapCol - 1],
-    //       this.map[mapRow][mapCol],
-    //       mapCol - 1
-    //     )
-    //   ) {
-    //     console.log("left Collission");
-    //     return true;
-    //   } else if (
-    //     this.bottomCollission(
-    //       this.map[mapRow === this.rowCount - 1 ? mapRow : mapRow + 1][mapCol],
-    //       this.map[mapRow][mapCol],
-    //       mapRow + 1
-    //     )
-    //   ) {
-    //     console.log("down collission");
-    //     return true;
-    //   } else if (
-    //     this.topCollission(
-    //       this.map[mapRow === 0 ? mapRow : mapRow - 1][mapCol],
-    //       this.map[mapRow][mapCol],
-    //       mapRow - 1
-    //     )
-    //   ) {
-    //     console.log("down collission");
-    //     return true;
-    //   } else if (
-    //     this.bottomCollission(
-    //       this.map[mapRow === this.rowCount - 1 ? mapRow : mapRow + 1][mapCol],
-    //       this.map[mapRow][mapCol],
-    //       mapRow + 1
-    //     )
-    //   ) {
-    //     console.log("down collission");
-    //     return true;
-    //   }
-    //   return false;
-    // }
-    // NORMAL MOVMENT COLLISION CHECKER
-    Game.prototype.normalMovCollisionChecker = function (mapRow, mapCol, sign) {
-        if (sign === "right" &&
-            this.rightCollission(this.map[mapRow][mapCol + 1], this.map[mapRow][mapCol], mapCol + 1)) {
-            console.log("right Collission ______");
-            return true;
-        }
-        else if (sign === "left" &&
-            this.leftCollission(this.map[mapRow][mapCol - 1], this.map[mapRow][mapCol], mapCol - 1)) {
-            console.log("left Collission");
-            return true;
-        }
-        else if (sign === "down" &&
-            this.bottomCollission(this.map[mapRow === this.rowCount - 1 ? mapRow : mapRow + 1][mapCol], this.map[mapRow][mapCol], mapRow + 1)) {
-            console.log("down Collission");
-            return true;
-        }
-        return false;
-    };
-    Game.prototype.neighborShapesCollision = function (sign) {
-        // ITERRATE TROUGH THE MAP AND LOOK FOR ACTIVE SHAPE THEN START CHECKING FOR NEIGHBOR COLLESION
-        for (var mapRow = 0; mapRow < this.map.length; mapRow++) {
-            for (var mapCol = 0; mapCol < this.map[mapRow].length; mapCol++) {
-                // DO NEIGHBOR COLLISON VERIFICATION JUST FOR CURRENT SHAPE IN OUR CASE MEAN ACTIVE SHAPE
-                if (this.map[mapRow][mapCol]["status"] === "active" && sign) {
-                    // SIGN JUST USED IN CASE LEFT OR RIGHT OR DOWN ARROW PRESSED
-                    // CHECK COLLISION FOR NORMAL MOVMENTS
-                    if (this.normalMovCollisionChecker(mapRow, mapCol, sign))
-                        return true;
-                }
-                // } else if (this.map[mapRow][mapCol]["status"] === "active") {
-                //   // CHECK COLLISION AN CASE SHAPE ROTATED
-                //   if (this.rotationCollisionChecker(mapRow, mapCol)) return true;
-                // }
-            }
-        }
-        return false;
-    };
-    Game.prototype.rotationCollision = function () {
-        var _a, _b, _c;
+    Game.prototype.collisionDetecter = function () {
+        var _a, _b;
         var shapeCpy = __assign({}, JSON.parse(JSON.stringify(this.shape)));
-        console.log("I'm here");
+        // console.log("I'm here");
         for (var shapeRow = 0; shapeRow < shapeCpy.pieces.length; shapeRow++) {
             for (var shapeCol = 0; shapeCol < shapeCpy.pieces[shapeRow].length; shapeCol++) {
                 /* CALCULATE THE ROW AND COL OF
-                   POSITION IN THE MAP THAT THE SAQURE OF SHAPE WILL BE FIT IN */
+                   POSITION IN THE MAP THAT THE SAQURE OF THE CURRENT SHAPE WILL BE FIT IN */
                 var row = shapeRow + shapeCpy.cords.row;
                 var col = shapeCol + shapeCpy.cords.col;
-                console.log("insided => ", row);
-                if (row >= this.rowCount ||
-                    col >= this.colCount ||
-                    col < 0 ||
-                    (((_a = this.map[row][col]) === null || _a === void 0 ? void 0 : _a.status) == "landed" &&
-                        (((_b = this.map[row][col]) === null || _b === void 0 ? void 0 : _b.value) != "." ||
-                            ((_c = this.map[row][col]) === null || _c === void 0 ? void 0 : _c.value) != "0"))) {
-                    console.log("before true");
-                    return true;
+                try {
+                    // DATA OF CURRENT POINT IN MAP
+                    var currtPointData = this.map[row] ? this.map[row][col] : undefined;
+                    // DATA OF NEW POINT THAT WILL BE ADD IN MAP
+                    var shapePointData = shapeCpy.pieces[shapeRow][shapeCol];
+                    // console.log("insided => ", row);
+                    /*
+                    - CHECK FOR X AXIS COLLISION
+                    - CEHCK FOR Y AXIS COLLISION
+                    - CHECK FOR NEIBHOUR COLLISION
+                  */
+                    console.log({
+                        row: row,
+                        col: col
+                    });
+                    if (col >= this.colCount || col < 0) {
+                        console.log("X AXIS COLLISION", col);
+                        return true;
+                    }
+                    else if (row >= this.rowCount || row < 0) {
+                        console.log("Y AXIS COLLISION", row);
+                        return true;
+                    }
+                    else if ((currtPointData === null || currtPointData === void 0 ? void 0 : currtPointData.status) == "landed" &&
+                        (currtPointData === null || currtPointData === void 0 ? void 0 : currtPointData.value) != "0" &&
+                        (currtPointData === null || currtPointData === void 0 ? void 0 : currtPointData.value) != "." &&
+                        (shapePointData === null || shapePointData === void 0 ? void 0 : shapePointData.value) != "0") {
+                        console.log("collision happen for that reasion");
+                        console.log("status :", (_a = this.map[row][col]) === null || _a === void 0 ? void 0 : _a.status);
+                        console.log("value :", (_b = this.map[row][col]) === null || _b === void 0 ? void 0 : _b.value);
+                        return true;
+                    }
+                }
+                catch (_c) {
+                    return false;
                 }
             }
         }
@@ -449,11 +334,190 @@ var Game = /** @class */ (function (_super) {
             }
         }
         this.shape.pieces = __spreadArray([], __read(JSON.parse(JSON.stringify(matrix))), false);
-        if (this.rotationCollision()) {
+        if (this.collisionDetecter()) {
             this.rotate();
         }
         this.updateMap();
     };
     return Game;
 }(Shape_1["default"]));
+// // VERIFY TOP SIDE COLLISSION OF A SHAPE
+// topCollission(neighborPostion: any, currPosition: any, rowIndex): boolean {
+//   // VERIFY THE TOP POINT IS EMPTY OR THE END OF MAP ROWS
+//   if (
+//     (neighborPostion &&
+//       neighborPostion["status"] === "landed" &&
+//       neighborPostion["value"] != "0" &&
+//       currPosition["value"] != "0") ||
+//     rowIndex <= 0
+//   )
+//     return true;
+//   return false;
+// }
+// // VERIFY RIGHT SIDE COLLISSION OF A SHAPE
+// rightCollission(
+//   neighborPostion: any,
+//   currPosition: any,
+//   colIndex: number
+// ): boolean {
+//   /*
+//   - VERIFY NEIHBOR POINT ITS STATUS LANDED OR NOT
+//   - VERIFY NEIHBOR POINT IS IT EMPTY OR THE END OF MAP COLUMNS
+//   - VERIFY THE VALUE OF CURRENT POINT IF IS IT DIFFRENT THAN ZERO
+//   */
+//   console.log("right collision");
+//   console.log({ colIndex });
+//   console.log({ colCount: this.colCount });
+//   console.log({ "neibghour-pos": neighborPostion?.status });
+//   console.log({ "neibghour-value": neighborPostion?.value });
+//   console.log({ "curr-pos": currPosition.value });
+//   if (
+//     (neighborPostion?.status === "landed" &&
+//       neighborPostion?.value != "0" &&
+//       currPosition.value != "0") ||
+//     colIndex >= this.colCount
+//   ) {
+//     return true;
+//   }
+//   return false;
+// }
+// // VERIFY LEFT SIDE COLLISSION OF A SHAPE
+// leftCollission(
+//   neighborPostion: any,
+//   currPosition: any,
+//   colIndex: number
+// ): boolean {
+//   // VERIFY THE LEFT POINT IS EMPTY OR THE END OF MAP COLUMNS
+//   if (
+//     (neighborPostion?.status === "landed" &&
+//       neighborPostion?.value != "0" &&
+//       currPosition.value != "0") ||
+//     colIndex < 0
+//   )
+//     return true;
+//   return false;
+// }
+// // VERIFY BOTTOM SIDE COLLISSION OF A SHAPE
+// bottomCollission(
+//   neighborPostion: any,
+//   currPosition: any,
+//   rowIndex: number
+// ): boolean {
+//   // VERIFY THE BOTTOM POINT IS EMPTY OR THE END OF MAP ROWS
+//   // console.log("bottom Collission function");
+//   // console.log({ rowIndex });
+//   // console.log({ rowCount: this.rowCount });
+//   if (
+//     (neighborPostion?.status === "landed" &&
+//       neighborPostion.value != "0" &&
+//       currPosition.value != "0") ||
+//     rowIndex >= this.rowCount
+//   )
+//     return true;
+//   return false;
+// }
+// // ROTATION MOVEMENT COLLISION CHECKER
+// rotationCollisionChecker(mapRow: number, mapCol: number) {
+//   console.log("Rotation =====> ");
+//   if (
+//     this.rightCollission(
+//       this.map[mapRow][mapCol + 1],
+//       this.map[mapRow][mapCol],
+//       mapCol + 1
+//     )
+//   ) {
+//     console.log("right Collission");
+//     return true;
+//   } if (
+//     this.leftCollission(
+//       this.map[mapRow][mapCol - 1],
+//       this.map[mapRow][mapCol],
+//       mapCol - 1
+//     )
+//   ) {
+//     console.log("left Collission");
+//     return true;
+//   } else if (
+//     this.bottomCollission(
+//       this.map[mapRow === this.rowCount - 1 ? mapRow : mapRow + 1][mapCol],
+//       this.map[mapRow][mapCol],
+//       mapRow + 1
+//     )
+//   ) {
+//     console.log("down collission");
+//     return true;
+//   } else if (
+//     this.topCollission(
+//       this.map[mapRow === 0 ? mapRow : mapRow - 1][mapCol],
+//       this.map[mapRow][mapCol],
+//       mapRow - 1
+//     )
+//   ) {
+//     console.log("down collission");
+//     return true;
+//   } else if (
+//     this.bottomCollission(
+//       this.map[mapRow === this.rowCount - 1 ? mapRow : mapRow + 1][mapCol],
+//       this.map[mapRow][mapCol],
+//       mapRow + 1
+//     )
+//   ) {
+//     console.log("down collission");
+//     return true;
+//   }
+//   return false;
+// }
+// // NORMAL MOVMENT COLLISION CHECKER
+// normalMovCollisionChecker(mapRow: number, mapCol: number, sign: string) {
+//   if (
+//     sign === "right" &&
+//     this.rightCollission(
+//       this.map[mapRow][mapCol + 1],
+//       this.map[mapRow][mapCol],
+//       mapCol + 1
+//     )
+//   ) {
+//     console.log("right Collission ______");
+//     return true;
+//   } else if (
+//     sign === "left" &&
+//     this.leftCollission(
+//       this.map[mapRow][mapCol - 1],
+//       this.map[mapRow][mapCol],
+//       mapCol - 1
+//     )
+//   ) {
+//     console.log("left Collission");
+//     return true;
+//   } else if (
+//     sign === "down" &&
+//     this.bottomCollission(
+//       this.map[mapRow === this.rowCount - 1 ? mapRow : mapRow + 1][mapCol],
+//       this.map[mapRow][mapCol],
+//       mapRow + 1
+//     )
+//   ) {
+//     console.log("down Collission");
+//     return true;
+//   }
+//   return false;
+// }
+// neighborShapesCollision(sign: string | undefined): boolean {
+//   // ITERRATE TROUGH THE MAP AND LOOK FOR ACTIVE SHAPE THEN START CHECKING FOR NEIGHBOR COLLESION
+//   for (let mapRow: number = 0; mapRow < this.map.length; mapRow++) {
+//     for (let mapCol: number = 0; mapCol < this.map[mapRow].length; mapCol++) {
+//       // DO NEIGHBOR COLLISON VERIFICATION JUST FOR CURRENT SHAPE IN OUR CASE MEAN ACTIVE SHAPE
+//       if (this.map[mapRow][mapCol]["status"] === "active" && sign) {
+//         // SIGN JUST USED IN CASE LEFT OR RIGHT OR DOWN ARROW PRESSED
+//         // CHECK COLLISION FOR NORMAL MOVMENTS
+//         if (this.normalMovCollisionChecker(mapRow, mapCol, sign)) return true;
+//       }
+//       // } else if (this.map[mapRow][mapCol]["status"] === "active") {
+//       //   // CHECK COLLISION AN CASE SHAPE ROTATED
+//       //   if (this.rotationCollisionChecker(mapRow, mapCol)) return true;
+//       // }
+//     }
+//   }
+//   return false;
+// }
 exports["default"] = Game;
