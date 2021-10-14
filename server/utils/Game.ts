@@ -24,6 +24,7 @@ class Game extends Shape {
     this.addShapeToMap();
     this.gravityInterval = 1000;
     this.gameOver = false;
+    this.falling();
   }
 
   *colGeneratore() {
@@ -161,7 +162,8 @@ class Game extends Shape {
     console.log("");
     this.map.forEach((row) => {
       row.forEach((item) => {
-        process.stdout.write(item.value);
+        if (item.value === "0") process.stdout.write(".");
+        else process.stdout.write(item.value);
       });
       process.stdout.write("\n");
     });
@@ -324,197 +326,11 @@ class Game extends Shape {
     this.updateMap();
   }
 
-  // falling() {
-  //   setInterval(() => {
-  //     this.moveDown();
-  //   }, this.gravityInterval);
-  // }
+  falling() {
+    setInterval(() => {
+      this.moveDown();
+    }, this.gravityInterval);
+  }
 }
-
-// // VERIFY TOP SIDE COLLISSION OF A SHAPE
-// topCollission(neighborPostion: any, currPosition: any, rowIndex): boolean {
-//   // VERIFY THE TOP POINT IS EMPTY OR THE END OF MAP ROWS
-//   if (
-//     (neighborPostion &&
-//       neighborPostion["status"] === "landed" &&
-//       neighborPostion["value"] != "0" &&
-//       currPosition["value"] != "0") ||
-//     rowIndex <= 0
-//   )
-//     return true;
-//   return false;
-// }
-
-// // VERIFY RIGHT SIDE COLLISSION OF A SHAPE
-// rightCollission(
-//   neighborPostion: any,
-//   currPosition: any,
-//   colIndex: number
-// ): boolean {
-//   /*
-//   - VERIFY NEIHBOR POINT ITS STATUS LANDED OR NOT
-//   - VERIFY NEIHBOR POINT IS IT EMPTY OR THE END OF MAP COLUMNS
-//   - VERIFY THE VALUE OF CURRENT POINT IF IS IT DIFFRENT THAN ZERO
-//   */
-//   console.log("right collision");
-//   console.log({ colIndex });
-//   console.log({ colCount: this.colCount });
-//   console.log({ "neibghour-pos": neighborPostion?.status });
-//   console.log({ "neibghour-value": neighborPostion?.value });
-//   console.log({ "curr-pos": currPosition.value });
-//   if (
-//     (neighborPostion?.status === "landed" &&
-//       neighborPostion?.value != "0" &&
-//       currPosition.value != "0") ||
-//     colIndex >= this.colCount
-//   ) {
-//     return true;
-//   }
-//   return false;
-// }
-
-// // VERIFY LEFT SIDE COLLISSION OF A SHAPE
-// leftCollission(
-//   neighborPostion: any,
-//   currPosition: any,
-//   colIndex: number
-// ): boolean {
-//   // VERIFY THE LEFT POINT IS EMPTY OR THE END OF MAP COLUMNS
-//   if (
-//     (neighborPostion?.status === "landed" &&
-//       neighborPostion?.value != "0" &&
-//       currPosition.value != "0") ||
-//     colIndex < 0
-//   )
-//     return true;
-//   return false;
-// }
-
-// // VERIFY BOTTOM SIDE COLLISSION OF A SHAPE
-// bottomCollission(
-//   neighborPostion: any,
-//   currPosition: any,
-//   rowIndex: number
-// ): boolean {
-//   // VERIFY THE BOTTOM POINT IS EMPTY OR THE END OF MAP ROWS
-//   // console.log("bottom Collission function");
-//   // console.log({ rowIndex });
-//   // console.log({ rowCount: this.rowCount });
-//   if (
-//     (neighborPostion?.status === "landed" &&
-//       neighborPostion.value != "0" &&
-//       currPosition.value != "0") ||
-//     rowIndex >= this.rowCount
-//   )
-//     return true;
-//   return false;
-// }
-
-// // ROTATION MOVEMENT COLLISION CHECKER
-// rotationCollisionChecker(mapRow: number, mapCol: number) {
-//   console.log("Rotation =====> ");
-//   if (
-//     this.rightCollission(
-//       this.map[mapRow][mapCol + 1],
-//       this.map[mapRow][mapCol],
-//       mapCol + 1
-//     )
-//   ) {
-//     console.log("right Collission");
-//     return true;
-//   } if (
-//     this.leftCollission(
-//       this.map[mapRow][mapCol - 1],
-//       this.map[mapRow][mapCol],
-//       mapCol - 1
-//     )
-//   ) {
-//     console.log("left Collission");
-//     return true;
-//   } else if (
-//     this.bottomCollission(
-//       this.map[mapRow === this.rowCount - 1 ? mapRow : mapRow + 1][mapCol],
-//       this.map[mapRow][mapCol],
-//       mapRow + 1
-//     )
-//   ) {
-//     console.log("down collission");
-//     return true;
-//   } else if (
-//     this.topCollission(
-//       this.map[mapRow === 0 ? mapRow : mapRow - 1][mapCol],
-//       this.map[mapRow][mapCol],
-//       mapRow - 1
-//     )
-//   ) {
-//     console.log("down collission");
-//     return true;
-//   } else if (
-//     this.bottomCollission(
-//       this.map[mapRow === this.rowCount - 1 ? mapRow : mapRow + 1][mapCol],
-//       this.map[mapRow][mapCol],
-//       mapRow + 1
-//     )
-//   ) {
-//     console.log("down collission");
-//     return true;
-//   }
-//   return false;
-// }
-
-// // NORMAL MOVMENT COLLISION CHECKER
-// normalMovCollisionChecker(mapRow: number, mapCol: number, sign: string) {
-//   if (
-//     sign === "right" &&
-//     this.rightCollission(
-//       this.map[mapRow][mapCol + 1],
-//       this.map[mapRow][mapCol],
-//       mapCol + 1
-//     )
-//   ) {
-//     console.log("right Collission ______");
-//     return true;
-//   } else if (
-//     sign === "left" &&
-//     this.leftCollission(
-//       this.map[mapRow][mapCol - 1],
-//       this.map[mapRow][mapCol],
-//       mapCol - 1
-//     )
-//   ) {
-//     console.log("left Collission");
-//     return true;
-//   } else if (
-//     sign === "down" &&
-//     this.bottomCollission(
-//       this.map[mapRow === this.rowCount - 1 ? mapRow : mapRow + 1][mapCol],
-//       this.map[mapRow][mapCol],
-//       mapRow + 1
-//     )
-//   ) {
-//     console.log("down Collission");
-//     return true;
-//   }
-//   return false;
-// }
-
-// neighborShapesCollision(sign: string | undefined): boolean {
-//   // ITERRATE TROUGH THE MAP AND LOOK FOR ACTIVE SHAPE THEN START CHECKING FOR NEIGHBOR COLLESION
-//   for (let mapRow: number = 0; mapRow < this.map.length; mapRow++) {
-//     for (let mapCol: number = 0; mapCol < this.map[mapRow].length; mapCol++) {
-//       // DO NEIGHBOR COLLISON VERIFICATION JUST FOR CURRENT SHAPE IN OUR CASE MEAN ACTIVE SHAPE
-//       if (this.map[mapRow][mapCol]["status"] === "active" && sign) {
-//         // SIGN JUST USED IN CASE LEFT OR RIGHT OR DOWN ARROW PRESSED
-//         // CHECK COLLISION FOR NORMAL MOVMENTS
-//         if (this.normalMovCollisionChecker(mapRow, mapCol, sign)) return true;
-//       }
-//       // } else if (this.map[mapRow][mapCol]["status"] === "active") {
-//       //   // CHECK COLLISION AN CASE SHAPE ROTATED
-//       //   if (this.rotationCollisionChecker(mapRow, mapCol)) return true;
-//       // }
-//     }
-//   }
-//   return false;
-// }
 
 export default Game;

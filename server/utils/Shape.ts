@@ -3,30 +3,30 @@
 // >
 
 const shapes: any = {
-  // "I-tetromino": {
-  //   cords: { row: 0, col: 5 },
-  //   pieces: [
-  //     [
-  //       { color: "", value: "1" },
-  //       { color: "", value: "1" },
-  //       { color: "", value: "1" },
-  //       { color: "", value: "1" },
-  //     ],
-  //   ],
-  // },
-  // "O-tetromino": {
-  //   cords: { row: 0, col: 5 },
-  //   pieces: [
-  //     [
-  //       { color: "", value: "2" },
-  //       { color: "", value: "2" },
-  //     ],
-  //     [
-  //       { color: "", value: "2" },
-  //       { color: "", value: "2" },
-  //     ],
-  //   ],
-  // },
+  "I-tetromino": {
+    cords: { row: 0, col: 5 },
+    pieces: [
+      [
+        { color: "", value: "1" },
+        { color: "", value: "1" },
+        { color: "", value: "1" },
+        { color: "", value: "1" },
+      ],
+    ],
+  },
+  "O-tetromino": {
+    cords: { row: 0, col: 5 },
+    pieces: [
+      [
+        { color: "", value: "2" },
+        { color: "", value: "2" },
+      ],
+      [
+        { color: "", value: "2" },
+        { color: "", value: "2" },
+      ],
+    ],
+  },
   "T-tetromino": {
     cords: { row: 0, col: 5 },
     pieces: [
@@ -42,55 +42,55 @@ const shapes: any = {
       ],
     ],
   },
-  // "S-tetromino": {
-  //   cords: { row: 0, col: 5 },
-  //   pieces: [
-  //     [
-  //       { color: "", value: "0" },
-  //       { color: "", value: "0" },
-  //       { state: 1, color: "", value: "4" },
-  //       { state: 1, color: "", value: "4" },
-  //     ],
-  //     [
-  //       { color: "", value: "4" },
-  //       { color: "", value: "4" },
-  //       { color: "", value: "0" },
-  //       { color: "", value: "0" },
-  //     ],
-  //   ],
-  // },
-  // "Z-tetromino": {
-  //   cords: { row: 0, col: 5 },
-  //   pieces: [
-  //     [
-  //       { color: "", value: "5" },
-  //       { color: "", value: "5" },
-  //       { color: "", value: "0" },
-  //       { color: "", value: "0" },
-  //     ],
-  //     [
-  //       { color: "", value: "0" },
-  //       { color: "", value: "0" },
-  //       { color: "", value: "5" },
-  //       { color: "", value: "5" },
-  //     ],
-  //   ],
-  // },
-  // "J-tetromino": {
-  //   cords: { row: 0, col: 5 },
-  //   pieces: [
-  //     [
-  //       { color: "", value: "6" },
-  //       { color: "", value: "0" },
-  //       { color: "", value: "0" },
-  //     ],
-  //     [
-  //       { color: "", value: "6" },
-  //       { color: "", value: "6" },
-  //       { color: "", value: "6" },
-  //     ],
-  //   ],
-  // },
+  "S-tetromino": {
+    cords: { row: 0, col: 5 },
+    pieces: [
+      [
+        { color: "", value: "0" },
+        { color: "", value: "0" },
+        { state: 1, color: "", value: "4" },
+        { state: 1, color: "", value: "4" },
+      ],
+      [
+        { color: "", value: "4" },
+        { color: "", value: "4" },
+        { color: "", value: "0" },
+        { color: "", value: "0" },
+      ],
+    ],
+  },
+  "Z-tetromino": {
+    cords: { row: 0, col: 5 },
+    pieces: [
+      [
+        { color: "", value: "5" },
+        { color: "", value: "5" },
+        { color: "", value: "0" },
+        { color: "", value: "0" },
+      ],
+      [
+        { color: "", value: "0" },
+        { color: "", value: "0" },
+        { color: "", value: "5" },
+        { color: "", value: "5" },
+      ],
+    ],
+  },
+  "J-tetromino": {
+    cords: { row: 0, col: 5 },
+    pieces: [
+      [
+        { color: "", value: "6" },
+        { color: "", value: "0" },
+        { color: "", value: "0" },
+      ],
+      [
+        { color: "", value: "6" },
+        { color: "", value: "6" },
+        { color: "", value: "6" },
+      ],
+    ],
+  },
   "L-tetromino": {
     cords: { row: 0, col: 5 },
     pieces: [
