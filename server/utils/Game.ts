@@ -1,11 +1,14 @@
 import { parse } from "path/posix";
 import Shape from "./Shape";
+import { Duplex } from "stream";
 
 export interface Square {
   status: string;
   color: string;
   value: string;
 }
+
+const data = [];
 
 class Game extends Shape {
   square: Square = { status: "", color: "", value: "." };
@@ -15,6 +18,8 @@ class Game extends Shape {
   rowCount: number;
   gravityInterval: number;
   gameOver: boolean;
+  gameStream: any;
+  data: any;
 
   constructor() {
     super();
@@ -25,6 +30,20 @@ class Game extends Shape {
     this.gravityInterval = 1000;
     this.gameOver = false;
     this.falling();
+    this.gameStream = new Duplex({
+      write(chunk, enc, next) {
+        data.push(chunk);
+        next();
+      },
+
+      read() {
+        if (data.length === 0) {
+          this.push(null);
+        } else {
+          // this.push(data.shift());
+        }
+      },
+    });
   }
 
   *colGeneratore() {
