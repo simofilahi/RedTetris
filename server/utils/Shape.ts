@@ -118,8 +118,8 @@ class Shape {
     const keys = Object.keys(shapes);
     const shape = shapes[keys[(keys.length * Math.random()) << 0]];
 
-    shape.pieces.forEach((element) => {
-      element.forEach((item) => {
+    shape.pieces.forEach((element: any) => {
+      element.forEach((item: any) => {
         item.status = "active";
       });
     });

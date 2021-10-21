@@ -5,13 +5,13 @@ class Player extends Game {
     super();
   }
 
-  keyPressEvent(key: string) {
-    if (key === "left") this.moveToLeft();
-    else if (key === "right") this.moveToRight();
-    else if (key === "down") this.moveDown();
-    else if (key === "space") this.rotate();
-    else if (key === "a") this.addShapeToMap();
-  }
+  // keyPressEvent(key: string) {
+  //   if (key === "left") this.moveToLeft();
+  //   else if (key === "right") this.moveToRight();
+  //   else if (key === "down") this.moveDown();
+  //   else if (key === "space") this.rotate();
+  //   else if (key === "a") this.addShapeToMap();
+  // }
 }
 
-module.exports = Player;
+export default Player;

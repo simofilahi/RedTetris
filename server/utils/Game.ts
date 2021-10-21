@@ -8,8 +8,6 @@ export interface Square {
   value: string;
 }
 
-const data = [];
-
 class Game extends Shape {
   square: Square = { status: "", color: "", value: "." };
   map: Array<Array<Square>>;
@@ -30,20 +28,6 @@ class Game extends Shape {
     this.gravityInterval = 1000;
     this.gameOver = false;
     this.falling();
-    this.gameStream = new Duplex({
-      write(chunk, enc, next) {
-        data.push(chunk);
-        next();
-      },
-
-      read() {
-        if (data.length === 0) {
-          this.push(null);
-        } else {
-          // this.push(data.shift());
-        }
-      },
-    });
   }
 
   *colGeneratore() {
@@ -135,6 +119,7 @@ class Game extends Shape {
     }
     // DRAW THE MAP
     this.draw();
+    return this.data;
   }
 
   // GOT RANDOM SHAPE AND ADD IT INTO MAP
@@ -304,7 +289,7 @@ class Game extends Shape {
   // ROTATION 90 DEGREE TO CURRENT SHAPE
   rotate() {
     // THIS ARRAY WILL HOLD ARRAYS THAT REPRESONT ROWS OF A CURRENT SHAPE
-    const matrix = [];
+    const matrix: any = [];
 
     // ITERATE TROUGH ROWS OF CURRENT SHAPE
     for (
@@ -346,9 +331,11 @@ class Game extends Shape {
   }
 
   falling() {
-    setInterval(() => {
-      this.moveDown();
-    }, this.gravityInterval);
+    this.moveDown();
+  }
+
+  getMap() {
+    return this.map;
   }
 }
 
