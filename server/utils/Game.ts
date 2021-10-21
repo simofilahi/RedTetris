@@ -22,7 +22,7 @@ class Game extends Shape {
   constructor() {
     super();
     this.colCount = 10;
-    this.rowCount = 10;
+    this.rowCount = 20;
     this.map = this.mapGenerator();
     this.addShapeToMap();
     this.gravityInterval = 1000;
@@ -45,6 +45,7 @@ class Game extends Shape {
 
   // DROP FULL LINES
   dropRows(): void {
+    console.log("dropRows");
     // INITIALZE NEW MAP
     const newMap = [];
 
@@ -65,7 +66,7 @@ class Game extends Shape {
         }
       }
       // VERIFY IF ROW NOT FULL PUSH IT TO NEW MAP
-      if (count < this.rowCount) newMap.push(this.map[mapRow]);
+      if (count < this.colCount) newMap.push(this.map[mapRow]);
 
       // RESET COUNT
       count = 0;
@@ -75,7 +76,10 @@ class Game extends Shape {
     let len = this.rowCount - newMap.length;
 
     // ADD NEEDED ROWS TO NEW MAP
-    for (; len > 0; len--) newMap.unshift([...this.colGeneratore()]);
+    for (; len > 0; len--) {
+      console.log("inside dropRows loop");
+      newMap.unshift([...this.colGeneratore()]);
+    }
 
     // COPY NEW MAP INTO PRIMARY MAP
     this.map = [...JSON.parse(JSON.stringify(newMap))];
@@ -119,7 +123,6 @@ class Game extends Shape {
     }
     // DRAW THE MAP
     this.draw();
-    return this.data;
   }
 
   // GOT RANDOM SHAPE AND ADD IT INTO MAP
@@ -268,7 +271,6 @@ class Game extends Shape {
         } else if (row >= this.rowCount) {
           return true;
         } else if (row === 1 && currtPointData?.status == "landed") {
-          console.log("map full");
           this.gameOver = true;
           return true;
         } else if (
@@ -334,7 +336,12 @@ class Game extends Shape {
     this.moveDown();
   }
 
+  gameOverStatus() {
+    if (this.gameOver) return true;
+  }
+
   getMap() {
+    this.dropRows();
     return this.map;
   }
 }

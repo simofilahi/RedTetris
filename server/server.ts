@@ -17,22 +17,33 @@ const io = new Server(server, {
 io.on("connection", (socket: any) => {
   const player = new Player();
 
-  io.on("left-key", () => {
+  socket.on("left-key", () => {
     player.moveToLeft();
     socket.emit("map", player.getMap());
   });
 
-  io.on("right-key", () => {
+  socket.on("right-key", () => {
     player.moveToRight();
     socket.emit("map", player.getMap());
   });
 
-  io.on("down-key", () => {
+  setInterval(() => {
     player.moveDown();
-    socket.emit("map", player.getMap());
+    if (player.gameOver) socket.emit("gameOver", true);
+    else socket.emit("map", player.getMap());
+  }, 800);
+
+  socket.on("down-key", () => {
+    player.moveDown();
+    console.log(player.gameOver);
+    if (player.gameOver) {
+      socket.emit("gameOver", true);
+    } else {
+      socket.emit("map", player.getMap());
+    }
   });
 
-  io.on("rotate", () => {
+  socket.on("rotate", () => {
     player.rotate();
     socket.emit("map", player.getMap());
   });

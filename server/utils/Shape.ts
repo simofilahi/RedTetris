@@ -7,10 +7,10 @@ const shapes: any = {
     cords: { row: 0, col: 5 },
     pieces: [
       [
-        { color: "", value: "1" },
-        { color: "", value: "1" },
-        { color: "", value: "1" },
-        { color: "", value: "1" },
+        { color: "#32C7EF", value: "1" },
+        { color: "#32C7EF", value: "1" },
+        { color: "#32C7EF", value: "1" },
+        { color: "#32C7EF", value: "1" },
       ],
     ],
   },
@@ -18,12 +18,12 @@ const shapes: any = {
     cords: { row: 0, col: 5 },
     pieces: [
       [
-        { color: "", value: "2" },
-        { color: "", value: "2" },
+        { color: "#F7D20C", value: "2" },
+        { color: "#F7D20C", value: "2" },
       ],
       [
-        { color: "", value: "2" },
-        { color: "", value: "2" },
+        { color: "#F7D20C", value: "2" },
+        { color: "#F7D20C", value: "2" },
       ],
     ],
   },
@@ -32,13 +32,13 @@ const shapes: any = {
     pieces: [
       [
         { color: "", value: "0" },
-        { color: "", value: "3" },
+        { color: "#AD4D9B", value: "3" },
         { color: "", value: "0" },
       ],
       [
-        { color: "", value: "3" },
-        { color: "", value: "3" },
-        { color: "", value: "3" },
+        { color: "#AD4D9B", value: "3" },
+        { color: "#AD4D9B", value: "3" },
+        { color: "#AD4D9B", value: "3" },
       ],
     ],
   },
@@ -47,14 +47,12 @@ const shapes: any = {
     pieces: [
       [
         { color: "", value: "0" },
-        { color: "", value: "0" },
-        { state: 1, color: "", value: "4" },
-        { state: 1, color: "", value: "4" },
+        { color: "#43B642", value: "4" },
+        { color: "#43B642", value: "4" },
       ],
       [
-        { color: "", value: "4" },
-        { color: "", value: "4" },
-        { color: "", value: "0" },
+        { color: "#43B642", value: "4" },
+        { color: "#43B642", value: "4" },
         { color: "", value: "0" },
       ],
     ],
@@ -63,16 +61,14 @@ const shapes: any = {
     cords: { row: 0, col: 5 },
     pieces: [
       [
-        { color: "", value: "5" },
-        { color: "", value: "5" },
-        { color: "", value: "0" },
+        { color: "#EF1F2A", value: "5" },
+        { color: "#EF1F2A", value: "5" },
         { color: "", value: "0" },
       ],
       [
         { color: "", value: "0" },
-        { color: "", value: "0" },
-        { color: "", value: "5" },
-        { color: "", value: "5" },
+        { color: "#EF1F2A", value: "5" },
+        { color: "#EF1F2A", value: "5" },
       ],
     ],
   },
@@ -80,14 +76,14 @@ const shapes: any = {
     cords: { row: 0, col: 5 },
     pieces: [
       [
-        { color: "", value: "6" },
+        { color: "#5A65AD", value: "6" },
         { color: "", value: "0" },
         { color: "", value: "0" },
       ],
       [
-        { color: "", value: "6" },
-        { color: "", value: "6" },
-        { color: "", value: "6" },
+        { color: "#5A65AD", value: "6" },
+        { color: "#5A65AD", value: "6" },
+        { color: "#5A65AD", value: "6" },
       ],
     ],
   },
@@ -97,12 +93,12 @@ const shapes: any = {
       [
         { color: "", value: "0" },
         { color: "", value: "0" },
-        { color: "", value: "7" },
+        { color: "#EF7920", value: "7" },
       ],
       [
-        { color: "", value: "7" },
-        { color: "", value: "7" },
-        { color: "", value: "7" },
+        { color: "#EF7920", value: "7" },
+        { color: "#EF7920", value: "7" },
+        { color: "#EF7920", value: "7" },
       ],
     ],
   },
