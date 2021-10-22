@@ -1,10 +1,21 @@
 import express, { Request, Response, Application } from "express";
+import { Model } from "mongoose";
 const bodyParser = require("body-parser");
 const cors = require("cors");
-import Player from "./utils/Player";
+
+const path = require("path");
+const GameModel = require("./models/game");
+const mongoose = require("mongoose");
+const dotenv = require("dotenv");
+
+// LOAD ENV VARS
+dotenv.config({ path: ".env" });
 
 // INIT THE APP
 const app: Application = express();
+
+// DB CONNECTION
+require("./config/connection");
 
 const server = require("http").createServer(app);
 
@@ -14,42 +25,7 @@ const io = new Server(server, {
   cors: { origin: "*" },
 });
 
-io.on("connection", (socket: any) => {
-  const player = new Player();
-
-  socket.on("left-key", () => {
-    player.moveToLeft();
-    socket.emit("map", player.getMap());
-  });
-
-  socket.on("right-key", () => {
-    player.moveToRight();
-    socket.emit("map", player.getMap());
-  });
-
-  setInterval(() => {
-    player.moveDown();
-    if (player.gameOver) socket.emit("gameOver", true);
-    else socket.emit("map", player.getMap());
-  }, 800);
-
-  socket.on("down-key", () => {
-    player.moveDown();
-    console.log(player.gameOver);
-    if (player.gameOver) {
-      socket.emit("gameOver", true);
-    } else {
-      socket.emit("map", player.getMap());
-    }
-  });
-
-  socket.on("rotate", () => {
-    player.rotate();
-    socket.emit("map", player.getMap());
-  });
-
-  socket.emit("map", player.getMap());
-});
+require("./socket/")(io);
 
 // CORS
 app.use(cors());
@@ -58,10 +34,20 @@ app.use(cors());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
-// TESTING ENDPOINT
-app.get("/api/", (req, res) => {
-  res.send("Hello from api!");
+const buildPath = path.normalize(path.join(__dirname, "../client/build"));
+
+app.use(express.static(buildPath));
+
+// console.log(path.dirname(filename).split(path.sep).pop());
+
+app.get("/:id", async (req, res) => {
+  res.sendFile(path.join(buildPath, "index.html"));
 });
+
+// // TESTING ENDPOINT
+// app.get("/", (req, res) => {
+//   res.sendFile(path.join(buildPath, "index.html"));
+// });
 
 // SERVER PORT
 const PORT = 1337;

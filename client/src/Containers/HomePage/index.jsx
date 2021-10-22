@@ -6,6 +6,7 @@ const socket = io("http://10.11.1.3:1337");
 const HomePage = () => {
   const [mapData, updateMap] = useState([]);
   const [gameOver, setGameOver] = useState(false);
+  const [userData, updateUserData] = useState(null);
 
   function getKey(e) {
     console.log({ e });
@@ -20,18 +21,33 @@ const HomePage = () => {
   }
 
   useEffect(() => {
-    socket.on("map", (data) => {
-      console.log({ data });
-      updateMap(data);
-    });
+    try {
+      var url = window.location;
 
-    socket.on("gameOver", (data) => {
-      console.log(data);
-      setGameOver(true);
-    });
+      const params = url.pathname.split("[");
+      console.log({ params });
+      const roomTitle = params[0].replace("/", "");
+      const playerName = params[1].replace("]", "");
 
-    console.log("test");
-    document.addEventListener("keydown", getKey);
+      console.log({ roomTitle, playerName });
+
+      updateUserData({ roomTitle, playerName });
+
+      socket.emit("join", { roomTitle, playerName });
+      socket.on("map", (data) => {
+        console.log({ data });
+        updateMap(data);
+      });
+
+      socket.on("gameOver", (data) => {
+        console.log(data);
+        setGameOver(true);
+      });
+
+      console.log("test");
+      document.addEventListener("keydown", getKey);
+    } catch {}
+
     return () => {
       document.removeEventListener("keydown", getKey);
     };
@@ -40,9 +56,9 @@ const HomePage = () => {
   return (
     <div className="h-screen bg-black flex w-full justify-center items-center text-white flex-col">
       <div>{gameOver ? "Game Over" : ""}</div>
-      <div className=" grid grid-cols-10 border-white border-2">
-        {mapData.length > 0 &&
-          mapData.map((row) => {
+      {mapData.length > 0 ? (
+        <div className=" grid grid-cols-10 border-white border-2">
+          {mapData.map((row) => {
             return row.map((col) => {
               console.log({ col });
               return (
@@ -53,7 +69,20 @@ const HomePage = () => {
               );
             });
           })}
-      </div>
+        </div>
+      ) : (
+        <div
+          className="bg-white h-12 w-52 text-black flex justify-center items-center font-bold text-lg"
+          onClick={() => {
+            socket.emit("start", {
+              roomTitle: userData.roomTitle,
+              playerName: userData.playerName,
+            });
+          }}
+        >
+          Start Game
+        </div>
+      )}
     </div>
   );
 };
