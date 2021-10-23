@@ -25,17 +25,28 @@ const HomePage = () => {
       var url = window.location;
 
       const params = url.pathname.split("[");
-      console.log({ params });
+
       const roomTitle = params[0].replace("/", "");
       const playerName = params[1].replace("]", "");
 
       console.log({ roomTitle, playerName });
+      socket.emit("join", { roomTitle, playerName }, (err, data) => {
+        const userData = {
+          roomTitle: data.roomTitle,
+          playerName: data.playerName,
+        };
+        console.log("CAllBack");
+        updateUserData(userData);
+      });
 
-      updateUserData({ roomTitle, playerName });
+      socket.on("game-started", () => {
+        console.log("on game-start");
+        socket.emit("start-playing");
+      });
+      // console.log({ roomTitle, playerName });
 
-      socket.emit("join", { roomTitle, playerName });
       socket.on("map", (data) => {
-        console.log({ data });
+        // console.log({ data });
         updateMap(data);
       });
 
@@ -44,9 +55,10 @@ const HomePage = () => {
         setGameOver(true);
       });
 
-      console.log("test");
       document.addEventListener("keydown", getKey);
-    } catch {}
+    } catch (e) {
+      console.log({ e });
+    }
 
     return () => {
       document.removeEventListener("keydown", getKey);
@@ -60,7 +72,7 @@ const HomePage = () => {
         <div className=" grid grid-cols-10 border-white border-2">
           {mapData.map((row) => {
             return row.map((col) => {
-              console.log({ col });
+              // console.log({ col });
               return (
                 <div
                   className="h-14 w-14"

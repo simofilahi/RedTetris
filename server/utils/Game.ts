@@ -18,6 +18,7 @@ class Game extends Shape {
   gameOver: boolean;
   gameStream: any;
   data: any;
+  score: any;
 
   constructor() {
     super();
@@ -27,7 +28,8 @@ class Game extends Shape {
     this.addShapeToMap();
     this.gravityInterval = 1000;
     this.gameOver = false;
-    this.falling();
+    this.score = 0;
+    // this.falling();
   }
 
   *colGeneratore() {
@@ -78,11 +80,16 @@ class Game extends Shape {
     // ADD NEEDED ROWS TO NEW MAP
     for (; len > 0; len--) {
       console.log("inside dropRows loop");
+      this.score += 10;
       newMap.unshift([...this.colGeneratore()]);
     }
 
     // COPY NEW MAP INTO PRIMARY MAP
     this.map = [...JSON.parse(JSON.stringify(newMap))];
+  }
+
+  getScore(): void {
+    return this.score;
   }
 
   // ADD SHAPE TO MAP
