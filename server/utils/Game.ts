@@ -1,6 +1,5 @@
 import { parse } from "path/posix";
 import Shape from "./Shape";
-import { Duplex } from "stream";
 
 export interface Square {
   status: string;
@@ -10,7 +9,8 @@ export interface Square {
 
 class Game extends Shape {
   square: Square = { status: "", color: "", value: "." };
-  map: Array<Array<Square>>;
+  map: any;
+  spectrumMap: any;
   shape: any;
   colCount: number;
   rowCount: number;
@@ -25,11 +25,12 @@ class Game extends Shape {
     this.colCount = 10;
     this.rowCount = 20;
     this.map = this.mapGenerator();
+    this.spectrumMap = this.mapGenerator();
     this.addShapeToMap();
     this.gravityInterval = 1000;
     this.gameOver = false;
     this.score = 0;
-    // this.falling();
+    this.falling();
   }
 
   *colGeneratore() {
@@ -86,10 +87,6 @@ class Game extends Shape {
 
     // COPY NEW MAP INTO PRIMARY MAP
     this.map = [...JSON.parse(JSON.stringify(newMap))];
-  }
-
-  getScore(): void {
-    return this.score;
   }
 
   // ADD SHAPE TO MAP
@@ -158,13 +155,22 @@ class Game extends Shape {
       ITS STATUS TO LANDED SO THE CLEAR
       FUNC CAN'T REMOVE IT FROM THE MAP
     */
+    let landed = false;
     for (let mapRow: number = 0; mapRow < this.map.length; mapRow++) {
       for (let mapCol: number = 0; mapCol < this.map[mapRow].length; mapCol++) {
         if (this.map[mapRow][mapCol].value !== ".") {
+          landed = true;
           this.map[mapRow][mapCol]["status"] = "landed";
         }
       }
     }
+
+    /* 
+      - IF SHAPE LANDED, 
+      - WE UPDATE SPECTURM MAP,
+        BY ADDING RECENT LANDED SHAPE TO SPECTRUM LAND
+    */
+    if (landed) this.landSpectrum();
   }
 
   // DRAW MAP
@@ -173,7 +179,7 @@ class Game extends Shape {
     console.log("--------------------------------");
     console.log("");
     console.log("--------------------------------");
-    console.log("");
+    console.log("Game map");
     this.map.forEach((row) => {
       row.forEach((item) => {
         if (item.value === "0") process.stdout.write(".");
@@ -266,13 +272,9 @@ class Game extends Shape {
             - CHECK FOR X AXIS COLLISION
             - CEHCK FOR Y AXIS COLLISION
             - CHECK FOR NEIBHOUR COLLISION
-            - HANDLE COLLISION IF MAP IS FULL VERTICALLY
+            - HANDLE COLLISION IF MAP IS FULL VERTICALLY, 
+              AND IF HAPPEND THE GAME IS OVER.
         */
-        console.log({
-          row,
-          col,
-          currtPointData,
-        });
         if (col >= this.colCount || col < 0) {
           return true;
         } else if (row >= this.rowCount) {
@@ -291,7 +293,7 @@ class Game extends Shape {
         }
       }
     }
-    // IN CASE THERE NO COLLISION
+    // IN CASE THERE IS NO COLLISION
     return false;
   }
 
@@ -329,7 +331,7 @@ class Game extends Shape {
 
     /*
       - EACH TIME THERE IS A COLLISION DETECT THE FUNCTION
-        WILL CALL IT SELF TO KEEP ROTATING SHAPE UNTIL
+        WILL CALL ITSELF TO KEEP ROTATING SHAPE UNTIL
         GOT THE FITTED ROTATION
     */
     if (this.collisionDetecter()) {
@@ -339,17 +341,79 @@ class Game extends Shape {
     this.updateMap();
   }
 
+  landSpectrum() {
+    /*
+      - ITERATE TROUGH GAME MAP
+      - VERIFY CURRENT POINT IF IS IT NOT EMPTY
+      - IF POINT OF GAME NOT EMPTY UPDATE THE SAME POINT
+        IN SPECTURM MAP BY ADDNG * TO ITS VALUE
+      - IF POINT OF MAP GAME EMPTY VERIFY
+        THE VERTICAL PARALLEL OF SPECTURM MAP
+        IF IS IT HAS * VALUE, THE CURRENT POINT SHOULD ALSO HAS *
+    */
+    for (let mapRow: number = 0; mapRow < this.map.length; mapRow++) {
+      for (let mapCol: number = 0; mapCol < this.map[mapRow].length; mapCol++) {
+        if (
+          this.map[mapRow][mapCol].value !== "." &&
+          this.map[mapRow][mapCol].value !== "0"
+        ) {
+          this.spectrumMap[mapRow][mapCol] = {
+            status: "landed",
+            color: "",
+            value: "*",
+          };
+        } else {
+          if (mapRow != 0 && this.spectrumMap[mapRow - 1][mapCol].value === "*")
+            this.spectrumMap[mapRow][mapCol] = {
+              status: "landed",
+              color: "",
+              value: "*",
+            };
+        }
+      }
+    }
+
+    // DEBUGGING PURPOSE
+    console.log("--------------------------------");
+    console.log("--------------------------------");
+    console.log("");
+    console.log("--------------------------------");
+    console.log("");
+    console.log("Spectrum map");
+    this.spectrumMap.forEach((row) => {
+      row.forEach((item) => {
+        process.stdout.write(item.value);
+      });
+      process.stdout.write("\n");
+    });
+    console.log("");
+    console.log("--------------------------------");
+  }
+
+  // FOR DEBBUGING PURPOSE
   falling() {
     this.moveDown();
   }
 
+  // CHECK FOR GAME IS OVER
   gameOverStatus() {
     if (this.gameOver) return true;
   }
 
+  // GET THE LAND SPECTURM OF THE PLAYER
+  getlandSpectrum() {
+    return JSON.stringify(JSON.parse(this.spectrumMap));
+  }
+
+  // GET THE SCORE OF THE PLAYER
+  getScore(): void {
+    return this.score;
+  }
+
+  // GET THE GAME MAP OF THE PLAYER
   getMap() {
     this.dropRows();
-    return this.map;
+    return JSON.stringify(JSON.parse(this.map));
   }
 }
 

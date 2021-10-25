@@ -1,6 +1,7 @@
 const keypress = require("keypress");
 const color = require("color");
-const Player = require("./utils/Player.JS");
+// const Player = require("./utils/Player");
+import Player from "./utils/Player";
 
 const player = new Player();
 
