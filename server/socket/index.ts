@@ -27,8 +27,9 @@ async function joinToGame(
     console.log({ doc });
     console.log("doc.id:", doc._id.toString());
     socket.data.player = new Player();
-    socket.join(doc._id.toString());
-    cb(false, { roomTitle, playerName });
+    const roomId = doc._id.toString();
+    socket.join(roomId);
+    cb(false, { roomTitle, playerName, roomId });
   } catch (e) {}
 }
 
@@ -40,16 +41,20 @@ async function orderToStartTheGameByLeader(
   const game = await GameModel.findOne({ roomTitle });
 
   if (game.players[0]["name"] === playerName && game.players[0]["leader"]) {
-    console.log({ game });
     socket.to(game._id.toString()).emit("game-started");
     socket.emit("game-started");
   }
 }
 
-async function StartGame(socket: any) {
+async function StartGame(socket: any, userData: any) {
   setInterval(() => {
     socket.data.player.moveDown();
     socket.emit("map", socket.data.player.getMap());
+    console.log("ROOM ID", userData);
+    socket.to(userData.roomId).emit("spectrum-map", {
+      spectrum: socket.data.player.getlandSpectrum(),
+      playerName: userData.playerName,
+    });
     if (socket.data.player.gameOver) {
       socket.emit("gameOver", true);
     }
@@ -66,9 +71,14 @@ function moveToRight(socket: any) {
   socket.emit("map", socket.data.player.getMap());
 }
 
-function moveDown(socket: any) {
+function moveDown(socket: any, userData: any) {
   socket.data.player.moveDown();
   socket.emit("map", socket.data.player.getMap());
+  console.log("ROOM ID", userData.roomId);
+  socket.to(userData.roomId).emit("spectrum-map", {
+    spectrum: socket.data.player.getlandSpectrum(),
+    playerName: userData.playerName,
+  });
   console.log(socket.data.player.gameOver);
   if (socket.data.player.gameOver) {
     socket.emit("gameOver", true);
@@ -95,8 +105,10 @@ module.exports = (io: any) => {
       orderToStartTheGameByLeader(socket, roomTitle, playerName);
     });
 
-    socket.on("start-playing", async () => {
-      StartGame(socket);
+    socket.on("start-playing", async (userData: any) => {
+      console.log("start playing");
+      console.log({ userData });
+      StartGame(socket, userData);
     });
 
     // Move shape to the left;
@@ -110,8 +122,10 @@ module.exports = (io: any) => {
     });
 
     // Move shape down
-    socket.on("down-key", () => {
-      moveDown(socket);
+    socket.on("down-key", (userData: any) => {
+      console.log("DOWN KEY");
+
+      moveDown(socket, userData);
     });
 
     // Rotate the shape

@@ -48,7 +48,6 @@ class Game extends Shape {
 
   // DROP FULL LINES
   dropRows(): void {
-    console.log("dropRows");
     // INITIALZE NEW MAP
     const newMap = [];
 
@@ -126,7 +125,7 @@ class Game extends Shape {
       }
     }
     // DRAW THE MAP
-    this.draw();
+    // this.draw();
   }
 
   // GOT RANDOM SHAPE AND ADD IT INTO MAP
@@ -180,8 +179,8 @@ class Game extends Shape {
     console.log("");
     console.log("--------------------------------");
     console.log("Game map");
-    this.map.forEach((row) => {
-      row.forEach((item) => {
+    this.map.forEach((row: any) => {
+      row.forEach((item: any) => {
         if (item.value === "0") process.stdout.write(".");
         else process.stdout.write(item.value);
       });
@@ -380,8 +379,8 @@ class Game extends Shape {
     console.log("--------------------------------");
     console.log("");
     console.log("Spectrum map");
-    this.spectrumMap.forEach((row) => {
-      row.forEach((item) => {
+    this.spectrumMap.forEach((row: any) => {
+      row.forEach((item: any) => {
         process.stdout.write(item.value);
       });
       process.stdout.write("\n");
@@ -402,7 +401,7 @@ class Game extends Shape {
 
   // GET THE LAND SPECTURM OF THE PLAYER
   getlandSpectrum() {
-    return JSON.stringify(JSON.parse(this.spectrumMap));
+    return JSON.parse(JSON.stringify(this.spectrumMap));
   }
 
   // GET THE SCORE OF THE PLAYER
@@ -413,7 +412,7 @@ class Game extends Shape {
   // GET THE GAME MAP OF THE PLAYER
   getMap() {
     this.dropRows();
-    return JSON.stringify(JSON.parse(this.map));
+    return JSON.parse(JSON.stringify(this.map));
   }
 }
 
