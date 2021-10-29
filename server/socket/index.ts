@@ -24,20 +24,16 @@ async function joinToGame(
         { new: true }
       );
     }
-    console.log({ doc });
-    console.log("doc.id:", doc._id.toString());
-    socket.data.player = new Player();
     const roomId = doc._id.toString();
+    socket.data.player = new Player();
+    socket.data.userData = { roomTitle, playerName, roomId: roomId };
     socket.join(roomId);
     cb(false, { roomTitle, playerName, roomId });
   } catch (e) {}
 }
 
-async function orderToStartTheGameByLeader(
-  socket: any,
-  roomTitle: any,
-  playerName: any
-) {
+async function orderToStartTheGameByLeader(socket: any) {
+  const { playerName, roomTitle } = socket.data.userData;
   const game = await GameModel.findOne({ roomTitle });
 
   if (game.players[0]["name"] === playerName && game.players[0]["leader"]) {
@@ -46,69 +42,91 @@ async function orderToStartTheGameByLeader(
   }
 }
 
-async function StartGame(socket: any, userData: any) {
+async function StartGame(socket: any) {
   setInterval(() => {
-    socket.data.player.moveDown();
-    socket.emit("map", socket.data.player.getMap());
-    console.log("ROOM ID", userData);
-    socket.to(userData.roomId).emit("spectrum-map", {
-      spectrum: socket.data.player.getlandSpectrum(),
-      playerName: userData.playerName,
+    const { playerName, roomId } = socket.data.userData;
+    const player = socket.data.player;
+    player.moveDown();
+    const removedRowsCount = player.getRemovedLinesCount();
+    console.log({ removedRowsCount });
+    if (removedRowsCount)
+      socket.to(roomId).emit("drop-rows-count", removedRowsCount);
+    socket.emit("map", player.getMap());
+    socket.to(roomId).emit("spectrum-map", {
+      spectrum: player.getlandSpectrum(),
+      playerName: playerName,
     });
-    if (socket.data.player.gameOver) {
+    if (player.gameOver) {
       socket.emit("gameOver", true);
     }
   }, 500);
 }
 
 function moveToleft(socket: any) {
-  socket.data.player.moveToLeft();
-  socket.emit("map", socket.data.player.getMap());
+  const player = socket.data.player;
+  player.moveToLeft();
+  socket.emit("map", player.getMap());
 }
 
 function moveToRight(socket: any) {
-  socket.data.player.moveToRight();
-  socket.emit("map", socket.data.player.getMap());
+  const player = socket.data.player;
+  player.moveToRight();
+  socket.emit("map", player.getMap());
 }
 
-function moveDown(socket: any, userData: any) {
-  socket.data.player.moveDown();
-  socket.emit("map", socket.data.player.getMap());
-  console.log("ROOM ID", userData.roomId);
-  socket.to(userData.roomId).emit("spectrum-map", {
-    spectrum: socket.data.player.getlandSpectrum(),
-    playerName: userData.playerName,
+function moveDown(socket: any) {
+  const { playerName, roomId } = socket.data.userData;
+  const player = socket.data.player;
+  player.moveDown();
+  const removedRowsCount = player.getRemovedLinesCount();
+  console.log({ removedRowsCount });
+  if (removedRowsCount)
+    socket.to(roomId).emit("drop-rows-count", removedRowsCount);
+  socket.emit("map", player.getMap());
+  socket.to(roomId).emit("spectrum-map", {
+    spectrum: player.getlandSpectrum(),
+    playerName: playerName,
   });
-  console.log(socket.data.player.gameOver);
-  if (socket.data.player.gameOver) {
+  if (player.gameOver) {
     socket.emit("gameOver", true);
   }
 }
 
+function AddLines(socket: any, rowsCount: any) {
+  const player = socket.data.player;
+  const { playerName, roomId } = socket.data.userData;
+  player.addRows(rowsCount);
+  // socket.emit("map", player.getMap());
+  // socket.to(roomId).emit("spectrum-map", {
+  //   spectrum: player.getlandSpectrum(),
+  //   playerName: playerName,
+  // });
+}
+
 function rotate(socket: any) {
-  socket.data.player.rotate();
-  socket.emit("map", socket.data.player.getMap());
+  const player = socket.data.player;
+  player.rotate();
+  socket.emit("map", player.getMap());
 }
 
 module.exports = (io: any) => {
   io.on("connection", (socket: any) => {
-    console.log("connected");
+    // console.log("connected");
 
     // Join to the game
     socket.on("join", async ({ roomTitle, playerName }: any, cb: any) => {
-      console.log("JOIN");
+      // console.log("JOIN");
       joinToGame(socket, roomTitle, playerName, cb);
     });
 
     // Start the game
-    socket.on("start", async ({ roomTitle, playerName }: any) => {
-      orderToStartTheGameByLeader(socket, roomTitle, playerName);
+    socket.on("start", () => {
+      orderToStartTheGameByLeader(socket);
     });
 
-    socket.on("start-playing", async (userData: any) => {
-      console.log("start playing");
-      console.log({ userData });
-      StartGame(socket, userData);
+    // Start playing
+    socket.on("start-playing", async () => {
+      StartGame(socket);
     });
 
     // Move shape to the left;
@@ -122,15 +140,25 @@ module.exports = (io: any) => {
     });
 
     // Move shape down
-    socket.on("down-key", (userData: any) => {
-      console.log("DOWN KEY");
+    socket.on("down-key", () => {
+      // console.log("DOWN KEY");
 
-      moveDown(socket, userData);
+      moveDown(socket);
     });
 
     // Rotate the shape
     socket.on("rotate", () => {
       rotate(socket);
     });
+
+    socket.on("drop-rows-count", (rowsCount: any) => {
+      AddLines(socket, rowsCount);
+    });
+
+    // socket.on("disconnect", () => {
+    //   console.log("On disconnect");
+    //   socket.data.player = null;
+    //   socket.data.userData = null;
+    // });
   });
 };

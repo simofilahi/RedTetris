@@ -9,6 +9,11 @@ export interface Square {
 
 class Game extends Shape {
   square: Square = { status: "", color: "", value: "." };
+  baseSquare: any = {
+    status: "landed",
+    color: "#FFFFFF",
+    value: "#",
+  };
   map: any;
   spectrumMap: any;
   shape: any;
@@ -19,6 +24,7 @@ class Game extends Shape {
   gameStream: any;
   data: any;
   score: any;
+  removedLinesCount: any;
 
   constructor() {
     super();
@@ -30,22 +36,40 @@ class Game extends Shape {
     this.gravityInterval = 1000;
     this.gameOver = false;
     this.score = 0;
-    this.falling();
+    this.removedLinesCount = 0;
   }
 
-  *colGeneratore() {
-    for (let i: number = 0; i < this.colCount; i++) yield this.square;
+  // GENERATE COLOS FOR THE MAP
+  *colGenerator(square: any = this.square) {
+    for (let i: number = 0; i < this.colCount; i++) yield square;
   }
 
+  // GENERATE ROWS FOR THE MAP
   *rowGenerator() {
     for (let i: number = 0; i < this.rowCount; i++)
-      yield [...this.colGeneratore()];
+      yield [...this.colGenerator()];
   }
 
+  // GENERATE THE INITAL MAP
   mapGenerator(): Array<Array<Square>> {
     return [...this.rowGenerator()];
   }
 
+  // ADD ROWS TO THE MAP
+  addRows(rowsCount: any): void {
+    if (rowsCount) {
+      // REMOVE FIRST ROWS DEPEND ON ROW COUNT
+      for (let i = 0; i < rowsCount; i++) {
+        this.map.shift();
+      }
+
+      // ADD ROCKET ROWS AT THE END OF MAP
+      for (let i = 0; i < rowsCount; i++) {
+        this.map.push([...this.colGenerator(this.baseSquare)]);
+      }
+    }
+    return;
+  }
   // DROP FULL LINES
   dropRows(): void {
     // INITIALZE NEW MAP
@@ -77,11 +101,15 @@ class Game extends Shape {
     // CALCULATE THE NUMBER OF ROWS NEEDED
     let len = this.rowCount - newMap.length;
 
+    // console.log({ len });
+    // SET REMOVED LINES COUNT
+    this.removedLinesCount = len;
+
     // ADD NEEDED ROWS TO NEW MAP
     for (; len > 0; len--) {
-      console.log("inside dropRows loop");
+      // console.log("inside dropRows loop");
       this.score += 10;
-      newMap.unshift([...this.colGeneratore()]);
+      newMap.unshift([...this.colGenerator()]);
     }
 
     // COPY NEW MAP INTO PRIMARY MAP
@@ -217,12 +245,14 @@ class Game extends Shape {
     /* IF THERE ARE NO COLLISOINS
        KEEP DEINCREMENT COL AND MOVE SHAPE TO LEFT
     */
-    this.shape.cords.col--;
-    if (!this.collisionDetecter()) {
-      this.updateMap();
-    } else {
-      this.shape.cords.col++;
-      this.draw();
+    if (!this.gameOver) {
+      this.shape.cords.col--;
+      if (!this.collisionDetecter()) {
+        this.updateMap();
+      } else {
+        this.shape.cords.col++;
+        // this.draw();
+      }
     }
   }
 
@@ -231,12 +261,14 @@ class Game extends Shape {
     /* IF THERE ARE NO COLLISOINS
        KEEP INCREMENT COL AND MOVE SHAPE TO RIGHT
     */
-    this.shape.cords.col++;
-    if (!this.collisionDetecter()) {
-      this.updateMap();
-    } else {
-      this.shape.cords.col--;
-      this.draw();
+    if (!this.gameOver) {
+      this.shape.cords.col++;
+      if (!this.collisionDetecter()) {
+        this.updateMap();
+      } else {
+        this.shape.cords.col--;
+        // this.draw();
+      }
     }
   }
 
@@ -287,7 +319,7 @@ class Game extends Shape {
           currtPointData?.value != "." &&
           shapePointData?.value != "0"
         ) {
-          console.log("collision happen");
+          // console.log("collision happen");
           return true;
         }
       }
@@ -371,28 +403,12 @@ class Game extends Shape {
         }
       }
     }
-
-    // DEBUGGING PURPOSE
-    console.log("--------------------------------");
-    console.log("--------------------------------");
-    console.log("");
-    console.log("--------------------------------");
-    console.log("");
-    console.log("Spectrum map");
-    this.spectrumMap.forEach((row: any) => {
-      row.forEach((item: any) => {
-        process.stdout.write(item.value);
-      });
-      process.stdout.write("\n");
-    });
-    console.log("");
-    console.log("--------------------------------");
   }
 
-  // FOR DEBBUGING PURPOSE
-  falling() {
-    this.moveDown();
-  }
+  // // FOR DEBBUGING PURPOSE
+  // falling() {
+  //   this.moveDown();
+  // }
 
   // CHECK FOR GAME IS OVER
   gameOverStatus() {
@@ -413,6 +429,15 @@ class Game extends Shape {
   getMap() {
     this.dropRows();
     return JSON.parse(JSON.stringify(this.map));
+  }
+
+  // GET COUNT OF REMOVED LINES
+  getRemovedLinesCount() {
+    const removedLinesCountCpy = this.removedLinesCount;
+
+    this.removedLinesCount = 0;
+
+    return removedLinesCountCpy;
   }
 }
 
