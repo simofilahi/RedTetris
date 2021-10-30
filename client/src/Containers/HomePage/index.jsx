@@ -1,6 +1,6 @@
 import { io } from "socket.io-client";
 import React, { useState, useEffect } from "react";
-const socket = io("http://10.11.1.3:1337");
+const socket = io("http://10.11.11.1:1337");
 
 const HomePage = () => {
   const [mapData, updateMap] = useState([]);
@@ -38,10 +38,6 @@ const HomePage = () => {
     setGameOver(true);
   });
 
-  socket.on("drop-rows-count", (dropLinesCount) => {
-    socket.emit("drop-rows-count", dropLinesCount);
-  });
-
   useEffect(() => {
     try {
       var url = window.location;
@@ -54,6 +50,11 @@ const HomePage = () => {
       socket.emit("join", { roomTitle, playerName }, (err, data) => {
         updateUserData({ ...data });
       });
+
+      socket.on("drop-rows-count", (dropLinesCount) => {
+        socket.emit("drop-rows-count", dropLinesCount);
+      });
+
       document.addEventListener("keydown", getKey);
     } catch (e) {
       console.log({ e });

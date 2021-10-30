@@ -55,21 +55,24 @@ class Game extends Shape {
     return [...this.rowGenerator()];
   }
 
-  // ADD ROWS TO THE MAP
+  // MAKE THE MAP SMALLER
   addRows(rowsCount: any): void {
     if (rowsCount) {
+      // this.draw();
       // REMOVE FIRST ROWS DEPEND ON ROW COUNT
       for (let i = 0; i < rowsCount; i++) {
         this.map.shift();
       }
 
-      // ADD ROCKET ROWS AT THE END OF MAP
+      // ADD ROWS AT THE END OF MAP, THESE ROW ARE NOT USABLE
       for (let i = 0; i < rowsCount; i++) {
         this.map.push([...this.colGenerator(this.baseSquare)]);
       }
+      // this.draw();
+      // process.exit(0);
     }
-    return;
   }
+
   // DROP FULL LINES
   dropRows(): void {
     // INITIALZE NEW MAP
@@ -85,6 +88,7 @@ class Game extends Shape {
         if (
           this.map[mapRow][mapCol].value !== "0" &&
           this.map[mapRow][mapCol].value !== "." &&
+          this.map[mapRow][mapCol].value !== "#" &&
           this.map[mapRow][mapCol]?.status === "landed"
         ) {
           // INCREMENT COUNTER  TO KNOW IF ROW IS FULL
@@ -235,8 +239,6 @@ class Game extends Shape {
         this.addShapeToMap();
       }
       if (this.gameOver) console.log("Game Over!");
-    } else {
-      console.log("Game Over!");
     }
   }
 
@@ -432,13 +434,13 @@ class Game extends Shape {
   }
 
   // GET COUNT OF REMOVED LINES
-  getRemovedLinesCount() {
-    const removedLinesCountCpy = this.removedLinesCount;
+  // getRemovedLinesCount() {
+  //   const removedLinesCountCpy = this.removedLinesCount;
 
-    this.removedLinesCount = 0;
+  //   this.removedLinesCount = 0;
 
-    return removedLinesCountCpy;
-  }
+  //   return removedLinesCountCpy;
+  // }
 }
 
 export default Game;

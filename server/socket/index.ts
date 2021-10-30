@@ -46,11 +46,13 @@ async function StartGame(socket: any) {
   setInterval(() => {
     const { playerName, roomId } = socket.data.userData;
     const player = socket.data.player;
+
     player.moveDown();
-    const removedRowsCount = player.getRemovedLinesCount();
-    console.log({ removedRowsCount });
-    if (removedRowsCount)
-      socket.to(roomId).emit("drop-rows-count", removedRowsCount);
+    if (player.removedLinesCount) {
+      socket.to(roomId).emit("drop-rows-count", player.removedLinesCount);
+      player.removedLinesCount = 0;
+    }
+
     socket.emit("map", player.getMap());
     socket.to(roomId).emit("spectrum-map", {
       spectrum: player.getlandSpectrum(),
@@ -77,11 +79,12 @@ function moveToRight(socket: any) {
 function moveDown(socket: any) {
   const { playerName, roomId } = socket.data.userData;
   const player = socket.data.player;
+
   player.moveDown();
-  const removedRowsCount = player.getRemovedLinesCount();
-  console.log({ removedRowsCount });
-  if (removedRowsCount)
-    socket.to(roomId).emit("drop-rows-count", removedRowsCount);
+  if (player.removedLinesCount) {
+    socket.to(roomId).emit("drop-rows-count", player.removedLinesCount);
+    player.removedLinesCount = 0;
+  }
   socket.emit("map", player.getMap());
   socket.to(roomId).emit("spectrum-map", {
     spectrum: player.getlandSpectrum(),
@@ -94,13 +97,16 @@ function moveDown(socket: any) {
 
 function AddLines(socket: any, rowsCount: any) {
   const player = socket.data.player;
-  const { playerName, roomId } = socket.data.userData;
-  player.addRows(rowsCount);
-  // socket.emit("map", player.getMap());
-  // socket.to(roomId).emit("spectrum-map", {
-  //   spectrum: player.getlandSpectrum(),
-  //   playerName: playerName,
-  // });
+  const { roomId, playerName } = socket.data.userData;
+
+  if (rowsCount) {
+    player.addRows(rowsCount);
+    socket.emit("map", player.getMap());
+    socket.to(roomId).emit("spectrum-map", {
+      spectrum: player.getlandSpectrum(),
+      playerName: playerName,
+    });
+  }
 }
 
 function rotate(socket: any) {
