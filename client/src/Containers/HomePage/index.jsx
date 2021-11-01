@@ -1,10 +1,11 @@
 import { io } from "socket.io-client";
 import React, { useState, useEffect } from "react";
-const socket = io("http://10.11.11.1:1337");
+const socket = io("http://10.11.2.12:1337");
 
 const HomePage = () => {
   const [mapData, updateMap] = useState([]);
   const [gameOver, setGameOver] = useState(false);
+  const [winner, setWinner] = useState(false);
   const [userData, updateUserData] = useState({});
   const [spectrumData, updateSpectrumData] = useState({});
 
@@ -38,6 +39,10 @@ const HomePage = () => {
     setGameOver(true);
   });
 
+  socket.on("winner", () => {
+    setWinner(true);
+  });
+
   useEffect(() => {
     try {
       var url = window.location;
@@ -51,8 +56,8 @@ const HomePage = () => {
         updateUserData({ ...data });
       });
 
-      socket.on("drop-rows-count", (dropLinesCount) => {
-        socket.emit("drop-rows-count", dropLinesCount);
+      socket.on("add-unusable-rows", (rowsCount) => {
+        socket.emit("add-unusable-rows", rowsCount);
       });
 
       document.addEventListener("keydown", getKey);
@@ -71,7 +76,7 @@ const HomePage = () => {
         className="bg-white h-12 w-52 text-black flex justify-center items-center font-bold text-lg"
         onClick={(e) => {
           e.preventDefault();
-          socket.emit("start");
+          socket.emit("start-order");
         }}
       >
         Start Game
@@ -113,8 +118,6 @@ const HomePage = () => {
   };
 
   const SpectrumMapCmp = (SpectrumMap) => {
-    // console.log(SpectrumMap);
-    // debugger;
     return (
       <div className="grid grid-cols-10 border-white border-2">
         {SpectrumMap &&
@@ -145,6 +148,7 @@ const HomePage = () => {
   return (
     <div className="h-screen bg-black flex w-full justify-center items-center text-white flex-col">
       <div>{gameOver ? "Game Over" : ""}</div>
+      <div>{winner ? "Winner" : ""}</div>
       {mapData.length > 0 ? (
         <div className="flex justify-between">
           {GameMap()}
