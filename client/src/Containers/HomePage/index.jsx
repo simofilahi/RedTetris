@@ -1,6 +1,6 @@
 import { io } from "socket.io-client";
 import React, { useState, useEffect } from "react";
-const socket = io("http://10.11.2.12:1337");
+const socket = io("http://10.11.12.4:1337");
 
 const HomePage = () => {
   const [mapData, updateMap] = useState([]);

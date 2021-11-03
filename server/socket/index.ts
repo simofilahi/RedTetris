@@ -1,12 +1,20 @@
 import Player from "../utils/Player";
 const GameModel = require("../models/game");
 
+// INTERFACES
+interface userData {
+  roomId?: number;
+  roomTitle?: string;
+  playerName?: string;
+  player?: any;
+}
+
 // UTILS
 
 // GET THE SOCKET INSTANCES COUNT JOINED INTO THE SAME ROOMID
 async function getSocketInstanceCount(
   io: any,
-  roomId: number
+  roomId: number | undefined
 ): Promise<number> {
   const sockets = await io.in(roomId).fetchSockets();
   const subscribersCount = sockets.length;
@@ -14,7 +22,10 @@ async function getSocketInstanceCount(
 }
 
 // GET THE SPECTRUM OF CURRENT PLAYER AND SEND IT TO OTHER PLAYERS
-function getSpectrumMap(socket: any, { roomId, player, playerName }: any) {
+function getSpectrumMap(
+  socket: any,
+  { roomId, player, playerName }: userData
+): void {
   socket.to(roomId).emit("spectrum-map", {
     spectrum: player.getlandSpectrum(),
     playerName: playerName,
@@ -22,21 +33,21 @@ function getSpectrumMap(socket: any, { roomId, player, playerName }: any) {
 }
 
 // CHECK THE GAME IF OVER FOR CURRENT SOCKET
-function checkGameOver(socket: any, { player, roomId }: any) {
+function checkGameOver(socket: any, { player, roomId }: userData): boolean {
   if (player.gameOver) {
     // SEND TO THE CURRENT PLAYER GAME OVER
     socket.emit("gameOver", true);
     // LEAVE THIS PLAYER FROM GAME ROOM
     socket.leave(roomId);
     // STOP INTERVAL
-    socket.data.player = null;
+    // socket.data.player = null;
     return true;
   }
   return false;
 }
 
 // CHECK IF SOME ROWS OF CURRENT PLAYER'S DROPPED
-function droppedRows(socket: any, { player, roomId }: any) {
+function droppedRows(socket: any, { player, roomId }: userData): void {
   if (player.removedLinesCount) {
     // SEND THE COUNT OF FULL ROWS TO OTHER PLAYERS THAT JOINED IN THE SAME ROOM
     socket.to(roomId).emit("add-unusable-rows", player.removedLinesCount);
@@ -45,10 +56,17 @@ function droppedRows(socket: any, { player, roomId }: any) {
   }
 }
 
+// FIND A PLAYER IF IS ALREADY IN GAME DOC
+function findPlayer(players: any, playerName: any) {
+  return players.some((item: any) => {
+    return item.name === playerName;
+  });
+}
+
 // SET SOCKET DATA TO NULL FOR ALL CLIENT
 function setSocketData(io: any) {}
 
-async function checkWinner(io: any, socket: any, { roomId }: any) {
+async function checkWinner(io: any, socket: any, roomId: number | undefined) {
   if ((await getSocketInstanceCount(io, roomId)) == 1) {
     socket.to(roomId).emit("winner");
     io.socketsLeave(roomId);
@@ -62,14 +80,14 @@ async function checkWinner(io: any, socket: any, { roomId }: any) {
 // JOINING THE GAME ROOM
 async function joinToGame(
   socket: any,
-  roomTitle: any,
-  playerName: any,
+  { roomTitle, playerName }: userData,
   cb: any
 ) {
   try {
     // LOOK FOR GAME IF IT'S CREATED IN THE BACKEND
-    const game = await GameModel.find({ title: roomTitle });
+    let game = await GameModel.find({ title: roomTitle });
 
+    // DOC VARIABLE WILL HOLD THE DATA OF THE ROOM
     let doc;
 
     // IN CASE NO GAME FOUND WITH GIVEN NAME
@@ -79,18 +97,34 @@ async function joinToGame(
         title: roomTitle,
       });
 
-      // ADD PLAYER TO PLAYER ARR
+      // ADD PLAYER TO PLAYER ARR, THE FIRST ONE WILL BE THE LEADER OF THE GAME
       doc.players.push({ name: playerName, leader: true });
 
       // SAVE DOC
       await doc.save();
-    } else {
+    } else if (findPlayer(game[0].players, playerName)) {
+      /*
+        IN CASE THE GAME ROOM HAVE THAT PLAYER WHO SEND THE REQUEST TO JOIN,
+      */
+      doc = game[0];
+    } else if (
+      game[0]?.players.length < 2 &&
+      !findPlayer(game[0].players, playerName)
+    ) {
+      /*
+        IN CASE THE GAME ROOM STILL HAVING LESS THAN TWO PLAYERS,
+        AND THE INCOMING REQUEST FROM A PLAYER WHO DOESN'T IN GAME ROOM
+      */
+
       // FIND THE GAME AND UPDATE IT BY ADDING NEW PLAYER TO PLAYERS ARRAY IN DB
       doc = await GameModel.findOneAndUpdate(
         { title: roomTitle },
         { $push: { players: { name: playerName } } },
         { new: true }
       );
+    } else {
+      console.log("You cannot join");
+      return;
     }
 
     // GET THE ROOM_ID FROM THE DOC
@@ -112,7 +146,7 @@ async function joinToGame(
 
 // ORDER EVENT FROM GAME LEADER TO START THE GAME
 async function orderToStartTheGameByLeader(socket: any) {
-  const { playerName, roomTitle } = socket.data.userData;
+  const { playerName, roomTitle }: userData = socket.data.userData;
 
   // LOOK FOR GAME NAME IF IT'S ALREADY CREATED IN DB
   const game = await GameModel.findOne({ roomTitle });
@@ -132,12 +166,18 @@ async function StartGame(socket: any, io: any, interval: any) {
   interval = setInterval(falling, 500);
 
   async function falling() {
-    const { playerName, roomId } = socket.data.userData;
+    const { playerName, roomId }: userData = socket.data.userData;
     const player = socket.data.player;
 
     console.log({ playerName, interval });
+
+    // CHECK THE MAP OF CURRENT PLAYER IS IT FULL
+    if (checkGameOver(socket, { player, roomId })) {
+      clearInterval(interval);
+    }
+
     // CHECK THE GAME WINNER
-    if (await checkWinner(io, socket, { roomId })) {
+    if (await checkWinner(io, socket, roomId)) {
       clearInterval(interval);
     }
 
@@ -152,11 +192,6 @@ async function StartGame(socket: any, io: any, interval: any) {
 
     // GET THE SPECTRUM MAP AND SEND IT TO OTHER PLAYER IN THE SAME ROOM
     getSpectrumMap(socket, { player, playerName, roomId });
-
-    // CHECK THE MAP OF CURRENT PLAYER IS IT FULL
-    if (checkGameOver(socket, { player, roomId })) {
-      clearInterval(interval);
-    }
   }
 }
 
@@ -192,7 +227,7 @@ async function moveDown(socket: any, io: any, interval: any) {
   player.moveDown();
 
   // CHECK THE WINNER OF GAME
-  if (await checkWinner(io, socket, { interval, roomId })) {
+  if (await checkWinner(io, socket, roomId)) {
     clearInterval(interval);
   }
 
@@ -209,15 +244,15 @@ async function moveDown(socket: any, io: any, interval: any) {
   getSpectrumMap(socket, { player, playerName, roomId });
 
   // CHECK THE MAP OF CURRENT PLAYER IS IT FULL
-  if (checkGameOver(socket, { player, roomId, interval })) {
+  if (checkGameOver(socket, { player, roomId })) {
     clearInterval(interval);
   }
 }
 
 // ADD NEW ROWS TO THE MAP
-function AddLines(socket: any, rowsCount: any) {
+function AddLines(socket: any, rowsCount: number) {
   const player = socket.data.player;
-  const { roomId, playerName } = socket.data.userData;
+  const { roomId, playerName }: userData = socket.data.userData;
 
   if (rowsCount) {
     // ADD ROW COUNT TO THE MAP OF OTHER PLAYER
@@ -252,7 +287,7 @@ module.exports = (io: any) => {
 
     // JOIN THE GAME
     socket.on("join", async ({ roomTitle, playerName }: any, cb: any) => {
-      joinToGame(socket, roomTitle, playerName, cb);
+      joinToGame(socket, { roomTitle, playerName }, cb);
     });
 
     // ORDER TO START THE GAME
@@ -261,7 +296,7 @@ module.exports = (io: any) => {
     });
 
     // START PLAYING
-    socket.on("start-playing", async () => {
+    socket.on("start-playing", () => {
       StartGame(socket, io, interval);
     });
 
@@ -286,7 +321,7 @@ module.exports = (io: any) => {
     });
 
     // ADD UNUSABLE ROWS TO THE MAP
-    socket.on("add-unusable-rows", (rowsCount: any) => {
+    socket.on("add-unusable-rows", (rowsCount: number) => {
       AddLines(socket, rowsCount);
     });
 
