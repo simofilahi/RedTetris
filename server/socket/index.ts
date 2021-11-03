@@ -1,5 +1,6 @@
 import { clear } from "console";
 import Player from "../utils/Player";
+import ShapesFactory from "../utils/shapesFactory";
 const GameModel = require("../models/game");
 const Stream = require("stream");
 
@@ -75,9 +76,6 @@ function getPlayerRole(players: any, playerName: any): string {
   }
   return "follower";
 }
-
-// SET SOCKET DATA TO NULL FOR ALL CLIENT
-function setSocketData(io: any) {}
 
 async function checkWinner(
   io: any,
@@ -161,7 +159,7 @@ async function joinToGame(
       - ADD INTERVAL VARIABLE FOR SETINTERVAL TO CLEAR IT AT THE END OF GAME
     */
     socket.data.gameData = {};
-    socket.data.gameData["player"] = new Player();
+    socket.data.gameData["player"] = new Player(roomId);
     socket.data.gameData["interval"] = {};
 
     // CREATE USERDATA IN SOCKET DATA

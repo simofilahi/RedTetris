@@ -1,5 +1,6 @@
 import { parse } from "path/posix";
-import Shape from "./Shape";
+import ShapesFactory from "./shapesFactory";
+import Shape from "./shapesFactory";
 
 export interface Square {
   status: string;
@@ -7,7 +8,7 @@ export interface Square {
   value: string;
 }
 
-class Game extends Shape {
+class Game extends ShapesFactory {
   square: Square = { status: "", color: "", value: "." };
   baseSquare: any = {
     status: "landed",
@@ -25,9 +26,10 @@ class Game extends Shape {
   data: any;
   score: any;
   removedLinesCount: any;
+  shapesFactory: any;
 
-  constructor() {
-    super();
+  constructor(roomId: string) {
+    super(roomId);
     this.colCount = 10;
     this.rowCount = 20;
     this.map = this.mapGenerator();
