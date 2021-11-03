@@ -147,9 +147,11 @@ const HomePage = () => {
 
   return (
     <div className="h-screen bg-black flex w-full justify-center items-center text-white flex-col">
-      <div>{gameOver ? "Game Over" : ""}</div>
-      <div>{winner ? "Winner" : ""}</div>
-      {userData && <div>Role: you are {userData.playerRole}</div>}
+      <div className="p-2">{gameOver ? "Game Over" : ""}</div>
+      <div className="p-2">{winner ? "Winner" : ""}</div>
+      {userData && !mapData.length && (
+        <div className="p-2">Role: you are {userData.playerRole}</div>
+      )}
       {mapData.length > 0 ? (
         <div className="flex justify-between">
           {GameMap()}
