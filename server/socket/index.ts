@@ -57,10 +57,18 @@ function droppedRows(socket: any, { player, roomId }: userData): void {
 }
 
 // FIND A PLAYER IF IS ALREADY IN GAME DOC
-function findPlayer(players: any, playerName: any) {
+function findPlayer(players: any, playerName: any): boolean {
   return players.some((item: any) => {
     return item.name === playerName;
   });
+}
+
+// GET PLAYER ROLE FROM DB DOC
+function getPlayerRole(players: any, playerName: any): string {
+  for (let i = 0; i < players.length; i++) {
+    if (players[i].name === playerName) return players[i].role;
+  }
+  return "follower";
 }
 
 // SET SOCKET DATA TO NULL FOR ALL CLIENT
@@ -98,7 +106,7 @@ async function joinToGame(
       });
 
       // ADD PLAYER TO PLAYER ARR, THE FIRST ONE WILL BE THE LEADER OF THE GAME
-      doc.players.push({ name: playerName, leader: true });
+      doc.players.push({ name: playerName, role: "leader" });
 
       // SAVE DOC
       await doc.save();
@@ -128,20 +136,31 @@ async function joinToGame(
     }
 
     // GET THE ROOM_ID FROM THE DOC
-    const roomId = doc._id.toString();
+    const roomId: number = doc._id.toString();
+
+    // GET THE PLAYER ROLE
+    const playerRole: string = getPlayerRole(doc?.players, playerName);
 
     // CREATE NEW INSTANCE AND ADD IT TO PLAYER SOCKET DATA
     socket.data.player = new Player();
 
     // CREATE USERDATA IN SOCKET DATA
-    socket.data.userData = { roomTitle, playerName, roomId: roomId };
+    socket.data.userData = {
+      roomTitle,
+      playerName,
+      roomId,
+      playerRole,
+    };
 
     // ADD CURRENT SOCKET TO A ROOM
     socket.join(roomId);
 
+    console.log({ playerRole });
     // SHARE THE DATA WITH THE CLIENT BY A CALLBACK
-    cb(false, { roomTitle, playerName, roomId });
-  } catch (e) {}
+    cb(false, { roomTitle, playerName, roomId, playerRole });
+  } catch (e) {
+    console.log({ e });
+  }
 }
 
 // ORDER EVENT FROM GAME LEADER TO START THE GAME
@@ -152,7 +171,10 @@ async function orderToStartTheGameByLeader(socket: any) {
   const game = await GameModel.findOne({ roomTitle });
 
   // INCOMING USER ORDER EVENT SHOULD MATCH THE FRIST ONE WHO JOINED THE GAME
-  if (game?.players[0]["name"] === playerName && game?.players[0]["leader"]) {
+  if (
+    game?.players[0]["name"] === playerName &&
+    game?.players[0]["role"] === "leader"
+  ) {
     // EMIT GAME STARTD EVENT TO ALL PLAYERS JOINED TO THE GAME ROOM ID EXCEPT THE LEADER
     socket.to(game._id.toString()).emit("game-started");
 

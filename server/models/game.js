@@ -3,7 +3,16 @@ const { Schema } = mongoose;
 
 const GameSchema = new Schema({
   title: String,
-  players: [{ name: String, leader: { type: Boolean, default: false } }],
+  players: [
+    {
+      name: String,
+      role: {
+        type: String,
+        enum: ["leader", "follower"],
+        default: "follower",
+      },
+    },
+  ],
   state: {
     type: String,
     enum: ["created", "started", "paused", "finished"],
