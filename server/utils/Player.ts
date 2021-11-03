@@ -2,8 +2,8 @@ import Game from "./Game";
 // const Game = require("./Game");
 
 class Player extends Game {
-  constructor() {
-    super();
+  constructor(shapesPoolId: string) {
+    super(shapesPoolId);
   }
 
   keyPressEvent(key: any) {

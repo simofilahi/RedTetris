@@ -115,8 +115,10 @@ class ShapesFactory {
     if (!shapesPools[poolId]) {
       shapesPools[poolId] = [];
       const keys = Object.keys(shapes);
+      // console.log({ keys });
       for (let index = 0; index < 100; index++) {
         const shape = shapes[keys[(keys.length * Math.random()) << 0]];
+        console.log({ shape });
         shapesPools[poolId].push(shape);
       }
     }
@@ -137,9 +139,11 @@ class ShapesFactory {
   }
 
   getShape = (poolId: string, index: number) => {
+    // console.log({ poolId });
+    // console.log(shapesPools[poolId]);
     if (shapesPools[poolId]) {
       for (let i = 0; i < shapesPools[poolId].length; i++) {
-        if ((i = index))
+        if (i == index)
           return {
             ...JSON.parse(JSON.stringify(shapesPools[poolId][index])),
           };

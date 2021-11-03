@@ -121,8 +121,10 @@ async function joinToGame(
       // ADD PLAYER TO PLAYER ARR, THE FIRST ONE WILL BE THE LEADER OF THE GAME
       doc.players.push({ name: playerName, role: "leader" });
 
+      console.log("hELLO");
       // SAVE DOC
       await doc.save();
+      console.log("Holla");
     } else if (findPlayer(game[0].players, playerName)) {
       /*
         IN CASE THE GAME ROOM HAVE THAT PLAYER WHO SEND THE REQUEST TO JOIN,
@@ -149,8 +151,9 @@ async function joinToGame(
     }
 
     // GET THE ROOM_ID FROM THE DOC
-    const roomId: number = doc._id.toString();
+    const roomId: string = doc._id.toString();
 
+    console.log("before");
     // GET THE PLAYER ROLE
     const playerRole: string = getPlayerRole(doc?.players, playerName);
 
@@ -159,9 +162,12 @@ async function joinToGame(
       - ADD INTERVAL VARIABLE FOR SETINTERVAL TO CLEAR IT AT THE END OF GAME
     */
     socket.data.gameData = {};
+    console.log("1");
     socket.data.gameData["player"] = new Player(roomId);
+    console.log("2");
     socket.data.gameData["interval"] = {};
 
+    console.log({ playerRole });
     // CREATE USERDATA IN SOCKET DATA
     socket.data.userData = {
       roomTitle,

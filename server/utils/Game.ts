@@ -27,9 +27,13 @@ class Game extends ShapesFactory {
   score: any;
   removedLinesCount: any;
   shapesFactory: any;
+  shapesPoolId: string;
+  shapeIndex: number;
 
-  constructor(roomId: string) {
-    super(roomId);
+  constructor(shapesPoolId: string) {
+    super(shapesPoolId);
+    this.shapesPoolId = shapesPoolId;
+    this.shapeIndex = 0;
     this.colCount = 10;
     this.rowCount = 20;
     this.map = this.mapGenerator();
@@ -164,7 +168,9 @@ class Game extends ShapesFactory {
 
   // GOT RANDOM SHAPE AND ADD IT INTO MAP
   addShapeToMap(): void {
-    this.shape = { ...this.getShape() };
+    console.log("before get shape");
+    this.shape = { ...this.getShape(this.shapesPoolId, this.shapeIndex) };
+    console.log("after get shape");
     this.updateMap();
   }
 
