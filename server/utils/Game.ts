@@ -170,6 +170,7 @@ class Game extends ShapesFactory {
   addShapeToMap(): void {
     console.log("before get shape");
     this.shape = { ...this.getShape(this.shapesPoolId, this.shapeIndex) };
+    this.shapeIndex += 1;
     console.log("after get shape");
     this.updateMap();
   }
