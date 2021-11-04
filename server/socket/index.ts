@@ -162,9 +162,7 @@ async function joinToGame(
       - ADD INTERVAL VARIABLE FOR SETINTERVAL TO CLEAR IT AT THE END OF GAME
     */
     socket.data.gameData = {};
-    console.log("1");
     socket.data.gameData["player"] = new Player(roomId);
-    console.log("2");
     socket.data.gameData["interval"] = {};
 
     console.log({ playerRole });
@@ -216,7 +214,7 @@ async function StartGame(socket: any, io: any, stopInterval: boolean = false) {
 
   for (;;) {
     console.log({ playerName });
-    await delay(500);
+    await delay(10000);
 
     // CHECK IF CURRENT PLAYER LOSES
     if (checkGameOver(socket, { player, roomId })) {

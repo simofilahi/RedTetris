@@ -145,6 +145,55 @@ const HomePage = () => {
     );
   };
 
+  const PlayerNextShape = () => {
+    return (
+      <div className="h-96  w-4/5 flex flex-col py-5">
+        <div className="py-1 border-white border-2 flex ">
+          <div className="flex-1 text-center"> Next Shape</div>
+        </div>
+        <div className="flex-1 w-full border-white border-2"></div>
+      </div>
+    );
+  };
+
+  const PlayerScore = () => {
+    return (
+      <div className="h-48 w-4/5 flex flex-col py-5">
+        <div className="py-1 border-white border-2 flex ">
+          <div className="flex-1 text-center">Score</div>
+        </div>
+        <div className="flex-1 w-full border-white border-2 flex justify-center items-center">
+          <div className="text-lg font-bold">4000</div>
+        </div>
+      </div>
+    );
+  };
+
+  const PlayerDropedLines = () => {
+    return (
+      <div className="h-48 w-4/5  flex flex-col py-5">
+        <div className="py-1 border-white border-2 flex ">
+          <div className="flex-1 text-center">Lines</div>
+        </div>
+        <div className="flex-1 w-full border-white border-2 flex justify-center items-center">
+          <div className="text-lg font-bold">100</div>
+        </div>
+      </div>
+    );
+  };
+
+  const HelperBoard = () => {
+    return (
+      <div className="p-10 border-white border-2  w-96  overflow-y-scroll">
+        <div className="flex flex-col justify-center items-center">
+          <PlayerNextShape />
+          <PlayerScore />
+          <PlayerDropedLines />
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="h-screen bg-black flex w-full justify-center items-center text-white flex-col">
       <div className="p-2">{gameOver ? "Game Over" : ""}</div>
@@ -154,6 +203,7 @@ const HomePage = () => {
       )}
       {mapData.length > 0 ? (
         <div className="flex justify-between">
+          {HelperBoard()}
           {GameMap()}
           {OpponentSpecturmMap()}
         </div>

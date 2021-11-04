@@ -175,6 +175,8 @@ class Game extends ShapesFactory {
     this.updateMap();
   }
 
+  getNextShape() {}
+
   // CLEAR THE MAP EXPECEPT FOR LANDED SHAPES
   clear() {
     for (let mapRow: number = 0; mapRow < this.map.length; mapRow++) {
