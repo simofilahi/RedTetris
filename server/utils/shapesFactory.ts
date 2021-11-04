@@ -118,7 +118,7 @@ class ShapesFactory {
       // console.log({ keys });
       for (let index = 0; index < 100; index++) {
         const shape = shapes[keys[Math.floor(keys.length * Math.random())]];
-        console.log({ shape });
+        // console.log({ shape });
         shapesPools[poolId].push(JSON.parse(JSON.stringify(shape)));
       }
     }

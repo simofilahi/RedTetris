@@ -24,11 +24,13 @@ class Game extends ShapesFactory {
   gameOver: boolean;
   gameStream: any;
   data: any;
-  score: any;
-  removedLinesCount: any;
+  score: number;
+  removedLinesCount: number;
+  droppedRowsCount: number;
   shapesFactory: any;
   shapesPoolId: string;
   shapeIndex: number;
+  nextShape: any;
 
   constructor(shapesPoolId: string) {
     super(shapesPoolId);
@@ -43,6 +45,7 @@ class Game extends ShapesFactory {
     this.gameOver = false;
     this.score = 0;
     this.removedLinesCount = 0;
+    this.droppedRowsCount = 0;
   }
 
   // GENERATE COLOS FOR THE MAP
@@ -111,9 +114,11 @@ class Game extends ShapesFactory {
     // CALCULATE THE NUMBER OF ROWS NEEDED
     let len = this.rowCount - newMap.length;
 
-    // console.log({ len });
     // SET REMOVED LINES COUNT
     this.removedLinesCount = len;
+
+    // SET DROPPED LINES
+    this.droppedRowsCount += len;
 
     // ADD NEEDED ROWS TO NEW MAP
     for (; len > 0; len--) {
@@ -168,14 +173,18 @@ class Game extends ShapesFactory {
 
   // GOT RANDOM SHAPE AND ADD IT INTO MAP
   addShapeToMap(): void {
-    console.log("before get shape");
     this.shape = { ...this.getShape(this.shapesPoolId, this.shapeIndex) };
     this.shapeIndex += 1;
-    console.log("after get shape");
+    this.nextShape = JSON.parse(
+      JSON.stringify(this.getShape(this.shapesPoolId, this.shapeIndex))
+    );
     this.updateMap();
   }
 
-  getNextShape() {}
+  // GET THE NEXT TETRIS SHAPE FOR THE CURRENT PLAYER
+  getNextShape() {
+    return this.nextShape;
+  }
 
   // CLEAR THE MAP EXPECEPT FOR LANDED SHAPES
   clear() {
@@ -244,13 +253,20 @@ class Game extends ShapesFactory {
       this.shape.cords.row++;
       if (!this.collisionDetecter()) {
         this.updateMap();
+        return true;
       } else {
         this.shape.cords.row--;
         this.setShapeLanded();
         this.addShapeToMap();
+        return false;
       }
-      if (this.gameOver) console.log("Game Over!");
     }
+    return false;
+  }
+
+  // MOVE SHAPE DOWN UNTIL REACH THE LAND OF MAP
+  instantDrop() {
+    while (this.moveDown());
   }
 
   // MOVE SHAPE TO THE LEFT
@@ -434,8 +450,13 @@ class Game extends ShapesFactory {
   }
 
   // GET THE SCORE OF THE PLAYER
-  getScore(): void {
+  getScore(): number {
     return this.score;
+  }
+
+  // GET DROPPED LINES COUNT
+  getDroppedRowsCount(): number {
+    return this.droppedRowsCount;
   }
 
   // GET THE GAME MAP OF THE PLAYER
@@ -443,15 +464,6 @@ class Game extends ShapesFactory {
     this.dropRows();
     return JSON.parse(JSON.stringify(this.map));
   }
-
-  // GET COUNT OF REMOVED LINES
-  // getRemovedLinesCount() {
-  //   const removedLinesCountCpy = this.removedLinesCount;
-
-  //   this.removedLinesCount = 0;
-
-  //   return removedLinesCountCpy;
-  // }
 }
 
 export default Game;

@@ -10,8 +10,8 @@ class Player extends Game {
     if (key === "left") this.moveToLeft();
     else if (key === "right") this.moveToRight();
     else if (key === "down") this.moveDown();
-    else if (key === "space") this.rotate();
-    else if (key === "a") this.addShapeToMap();
+    else if (key === "upper") this.rotate();
+    else if (key === "space") this.instantDrop();
   }
 }
 

@@ -3,45 +3,20 @@ import React, { useState, useEffect } from "react";
 const socket = io("http://10.11.12.4:1337");
 
 const HomePage = () => {
-  const [mapData, updateMap] = useState([]);
-  const [gameOver, setGameOver] = useState(false);
-  const [winner, setWinner] = useState(false);
-  const [userData, updateUserData] = useState({});
-  const [spectrumData, updateSpectrumData] = useState({});
+  const [playerData, updatePlayerData] = useState({});
 
   function getKey(e) {
-    if (e.key === "ArrowRight") socket.emit("right-key");
-    else if (e.key === "ArrowLeft") socket.emit("left-key");
-    else if (e.key === "ArrowDown") {
+    console.log(e.keyCode);
+    if (e.keyCode === 39) socket.emit("right-key");
+    else if (e.keyCode === 37) socket.emit("left-key");
+    else if (e.keyCode === 40) {
       socket.emit("down-key");
     } else if (e.keyCode === 32) {
+      socket.emit("upper-key");
+    } else if (e.keyCode === 38) {
       socket.emit("rotate");
     }
   }
-
-  socket.on("game-started", () => {
-    socket.emit("start-playing", {
-      roomTitle: userData.roomTitle,
-      playerName: userData.playerName,
-      roomId: userData.roomId,
-    });
-  });
-
-  socket.on("spectrum-map", (icomingSpectrumData) => {
-    updateSpectrumData(icomingSpectrumData);
-  });
-
-  socket.on("map", (data) => {
-    updateMap(data);
-  });
-
-  socket.on("gameOver", (data) => {
-    setGameOver(true);
-  });
-
-  socket.on("winner", () => {
-    setWinner(true);
-  });
 
   useEffect(() => {
     try {
@@ -53,11 +28,63 @@ const HomePage = () => {
       const playerName = params[1].replace("]", "");
 
       socket.emit("join", { roomTitle, playerName }, (err, data) => {
-        updateUserData({ ...data });
+        updatePlayerData((prevState) => {
+          return { ...prevState, ...data };
+        });
+      });
+
+      socket.on("game-started", () => {
+        socket.emit("start-playing", {
+          roomTitle: playerData.roomTitle,
+          playerName: playerData.playerName,
+          roomId: playerData.roomId,
+        });
       });
 
       socket.on("add-unusable-rows", (rowsCount) => {
         socket.emit("add-unusable-rows", rowsCount);
+      });
+
+      socket.on("map", (data) => {
+        updatePlayerData((prevState) => {
+          return { ...prevState, playerLand: data };
+        });
+      });
+
+      socket.on("spectrum-map", (icomingSpectrumData) => {
+        updatePlayerData((prevState) => {
+          return { ...prevState, opponentSpecturmMap: icomingSpectrumData };
+        });
+      });
+
+      socket.on("gameOver", () => {
+        updatePlayerData((prevState) => {
+          return { ...prevState, loser: true };
+        });
+      });
+
+      socket.on("winner", () => {
+        updatePlayerData((prevState) => {
+          return { ...prevState, winner: true };
+        });
+      });
+
+      socket.on("score", (score) => {
+        updatePlayerData((prevState) => {
+          return { ...prevState, score };
+        });
+      });
+
+      socket.on("dropped-lines", (droppedLines) => {
+        updatePlayerData((prevState) => {
+          return { ...prevState, droppedLines };
+        });
+      });
+
+      socket.on("next-shape", (playerNextShape) => {
+        updatePlayerData((prevState) => {
+          return { ...prevState, playerNextShape };
+        });
       });
 
       document.addEventListener("keydown", getKey);
@@ -85,9 +112,10 @@ const HomePage = () => {
   };
 
   const GameMap = () => {
+    // console.log(playerData.playerLand);
     return (
       <div className=" grid grid-cols-10 border-white border-2">
-        {mapData.map((row) => {
+        {playerData?.playerLand?.map((row) => {
           return row.map((col, index) => {
             // console.log({ col });
             if (col.value === "#") {
@@ -135,23 +163,42 @@ const HomePage = () => {
   };
 
   const OpponentSpecturmMap = () => {
-    return (
-      <div className="p-10 border-white border-2  w-96  overflow-y-scroll">
-        <div className="flex flex-col">
-          <div>{spectrumData["playerName"]}</div>
-          {SpectrumMapCmp(spectrumData["spectrum"])}
+    if (playerData.opponentSpecturmMap) {
+      return (
+        <div className="p-10 border-white border-2  w-96  overflow-y-scroll">
+          <div className="flex flex-col">
+            <div>{playerData.opponentSpecturmMap["playerName"]}</div>
+            {SpectrumMapCmp(playerData.opponentSpecturmMap["spectrum"])}
+          </div>
         </div>
-      </div>
-    );
+      );
+    }
+    return <></>;
   };
 
   const PlayerNextShape = () => {
     return (
       <div className="h-96  w-4/5 flex flex-col py-5">
         <div className="py-1 border-white border-2 flex ">
-          <div className="flex-1 text-center"> Next Shape</div>
+          <div className="flex-1 text-center">Next Shape</div>
         </div>
-        <div className="flex-1 w-full border-white border-2"></div>
+        <div className="flex-1 w-full border-white border-2 justify-center items-center flex">
+          <div
+            className={`grid grid-cols-${playerData?.playerNextShape?.pieces[0].length} p-10 `}
+          >
+            {playerData?.playerNextShape?.pieces?.map((row) => {
+              return row.map((col, index) => {
+                return (
+                  <div
+                    key={index}
+                    className="h-8 w-8"
+                    style={{ backgroundColor: col.color }}
+                  ></div>
+                );
+              });
+            })}
+          </div>
+        </div>
       </div>
     );
   };
@@ -163,7 +210,7 @@ const HomePage = () => {
           <div className="flex-1 text-center">Score</div>
         </div>
         <div className="flex-1 w-full border-white border-2 flex justify-center items-center">
-          <div className="text-lg font-bold">4000</div>
+          <div className="text-lg text-bold">{playerData?.score}</div>
         </div>
       </div>
     );
@@ -176,7 +223,7 @@ const HomePage = () => {
           <div className="flex-1 text-center">Lines</div>
         </div>
         <div className="flex-1 w-full border-white border-2 flex justify-center items-center">
-          <div className="text-lg font-bold">100</div>
+          <div className="text-lg">{playerData?.droppedLines}</div>
         </div>
       </div>
     );
@@ -196,12 +243,14 @@ const HomePage = () => {
 
   return (
     <div className="h-screen bg-black flex w-full justify-center items-center text-white flex-col">
-      <div className="p-2">{gameOver ? "Game Over" : ""}</div>
-      <div className="p-2">{winner ? "Winner" : ""}</div>
-      {userData && !mapData.length && (
-        <div className="p-2">Role: you are {userData.playerRole}</div>
+      <div className="p-2">{playerData.loser ? "Game Over" : ""}</div>
+      <div className="p-2">{playerData.winner ? "Winner" : ""}</div>
+      {playerData && (
+        <div className="p-2">
+          Role: you are {playerData.playerRole ? playerData.playerRole : ""}
+        </div>
       )}
-      {mapData.length > 0 ? (
+      {playerData?.playerLand?.length > 0 ? (
         <div className="flex justify-between">
           {HelperBoard()}
           {GameMap()}
