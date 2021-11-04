@@ -135,12 +135,12 @@ class ShapesFactory {
   }
 
   dropShapePool(poolId: number) {
-    // if (!shapesPools[poolId])
+    if (!shapesPools[poolId]) {
+    }
   }
 
   getShape = (poolId: string, index: number) => {
-    // console.log({ poolId });
-    // console.log(shapesPools[poolId]);
+    if (index > shapesPools[poolId].length) this.addMoreShapeToPool(poolId);
     if (shapesPools[poolId]) {
       for (let i = 0; i < shapesPools[poolId].length; i++) {
         if (i == index)

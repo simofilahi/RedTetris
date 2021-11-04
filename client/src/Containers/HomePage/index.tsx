@@ -1,11 +1,16 @@
 import { io } from "socket.io-client";
 import React, { useState, useEffect } from "react";
+
 const socket = io("http://10.11.12.4:1337");
+/* eslint-disable import/first */
+import winnerImg from "../../assets/img/winner.png"
+import loserImg from "../../assets/img/loser.png"
+
 
 const HomePage = () => {
-  const [playerData, updatePlayerData] = useState({});
+  const [playerData, updatePlayerData]: any = useState({});
 
-  function getKey(e) {
+  function getKey(e: any) {
     console.log(e.keyCode);
     if (e.keyCode === 39) socket.emit("right-key");
     else if (e.keyCode === 37) socket.emit("left-key");
@@ -27,8 +32,8 @@ const HomePage = () => {
       const roomTitle = params[0].replace("/", "");
       const playerName = params[1].replace("]", "");
 
-      socket.emit("join", { roomTitle, playerName }, (err, data) => {
-        updatePlayerData((prevState) => {
+      socket.emit("join", { roomTitle, playerName }, (err: any, data: any) => {
+        updatePlayerData((prevState: any) => {
           return { ...prevState, ...data };
         });
       });
@@ -46,43 +51,43 @@ const HomePage = () => {
       });
 
       socket.on("map", (data) => {
-        updatePlayerData((prevState) => {
+        updatePlayerData((prevState: any) => {
           return { ...prevState, playerLand: data };
         });
       });
 
       socket.on("spectrum-map", (icomingSpectrumData) => {
-        updatePlayerData((prevState) => {
+        updatePlayerData((prevState: any) => {
           return { ...prevState, opponentSpecturmMap: icomingSpectrumData };
         });
       });
 
       socket.on("gameOver", () => {
-        updatePlayerData((prevState) => {
+        updatePlayerData((prevState: any) => {
           return { ...prevState, loser: true };
         });
       });
 
       socket.on("winner", () => {
-        updatePlayerData((prevState) => {
+        updatePlayerData((prevState: any) => {
           return { ...prevState, winner: true };
         });
       });
 
       socket.on("score", (score) => {
-        updatePlayerData((prevState) => {
+        updatePlayerData((prevState: any) => {
           return { ...prevState, score };
         });
       });
 
       socket.on("dropped-lines", (droppedLines) => {
-        updatePlayerData((prevState) => {
+        updatePlayerData((prevState: any) => {
           return { ...prevState, droppedLines };
         });
       });
 
       socket.on("next-shape", (playerNextShape) => {
-        updatePlayerData((prevState) => {
+        updatePlayerData((prevState: any) => {
           return { ...prevState, playerNextShape };
         });
       });
@@ -111,12 +116,13 @@ const HomePage = () => {
     );
   };
 
+ 
   const GameMap = () => {
     // console.log(playerData.playerLand);
     return (
       <div className=" grid grid-cols-10 border-white border-2">
-        {playerData?.playerLand?.map((row) => {
-          return row.map((col, index) => {
+        {playerData?.playerLand?.map((row: any) => {
+          return row.map((col: any, index: number) => {
             // console.log({ col });
             if (col.value === "#") {
               return (
@@ -145,12 +151,12 @@ const HomePage = () => {
     );
   };
 
-  const SpectrumMapCmp = (SpectrumMap) => {
+  const SpectrumMapCmp = (SpectrumMap: any) => {
     return (
       <div className="grid grid-cols-10 border-white border-2">
         {SpectrumMap &&
-          SpectrumMap.map((row) => {
-            return row.map((col, index) => {
+          SpectrumMap.map((row: any) => {
+            return row.map((col: any, index: number) => {
               if (col.value === "*") {
                 return <div key={index} className="h-8 w-8 bg-blue-400"></div>;
               } else {
@@ -186,8 +192,8 @@ const HomePage = () => {
           <div
             className={`grid grid-cols-${playerData?.playerNextShape?.pieces[0].length} p-10 `}
           >
-            {playerData?.playerNextShape?.pieces?.map((row) => {
-              return row.map((col, index) => {
+            {playerData?.playerNextShape?.pieces?.map((row: any) => {
+              return row.map((col: any, index: any) => {
                 return (
                   <div
                     key={index}
@@ -241,10 +247,24 @@ const HomePage = () => {
     );
   };
 
+  const EndGameCard = () => {
+    return (
+      <div className="h-full w-full bg-black opacity-90 absolute top-0 z-index flex flex-col ">
+        <div className="py-10 px-20 self-end font-medium text-2xl cursor-pointer " onClick={() => {
+          updatePlayerData((prevState: any) => {
+            return {playerName: prevState.playerName, roomId: prevState.roomId, roomTitle: prevState.roomTitle, playerRole: prevState.playerRole}
+          })
+        }}>x</div>
+        <div className="flex-auto  m-20 flex justify-center items-center">
+          <img src={playerData?.winner ? winnerImg : loserImg} className="h-98 w-96 self-center" />
+        </div>
+      </div>
+    );
+  };
+
+
   return (
-    <div className="h-screen bg-black flex w-full justify-center items-center text-white flex-col">
-      <div className="p-2">{playerData.loser ? "Game Over" : ""}</div>
-      <div className="p-2">{playerData.winner ? "Winner" : ""}</div>
+    <div className="h-screen bg-black flex w-full justify-center items-center text-white flex-col ">
       {playerData && (
         <div className="p-2">
           Role: you are {playerData.playerRole ? playerData.playerRole : ""}
@@ -259,6 +279,7 @@ const HomePage = () => {
       ) : (
         StartGameBtn()
       )}
+      {(playerData?.winner || playerData?.loser) &&  <EndGameCard />}
     </div>
   );
 };
