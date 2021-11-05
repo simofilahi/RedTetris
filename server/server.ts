@@ -40,14 +40,9 @@ app.use(express.static(buildPath));
 
 // console.log(path.dirname(filename).split(path.sep).pop());
 
-app.get("/:id", async (req, res) => {
+app.get("/", async (req, res) => {
   res.sendFile(path.join(buildPath, "index.html"));
 });
-
-// // TESTING ENDPOINT
-// app.get("/", (req, res) => {
-//   res.sendFile(path.join(buildPath, "index.html"));
-// });
 
 // SERVER PORT
 const PORT = 1337;

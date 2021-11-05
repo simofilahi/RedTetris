@@ -3,9 +3,9 @@ import React, { useState, useEffect } from "react";
 
 const socket = io("http://10.11.12.4:1337");
 /* eslint-disable import/first */
-import winnerImg from "../../assets/img/winner.png"
-import loserImg from "../../assets/img/loser.png"
-
+import winnerImg from "../../assets/img/winner.png";
+import loserImg from "../../assets/img/loser.png";
+import tetrisAudio from "../../assets/audio/tetris.mp3";
 
 const HomePage = () => {
   const [playerData, updatePlayerData]: any = useState({});
@@ -27,7 +27,11 @@ const HomePage = () => {
     try {
       var url = window.location;
 
-      const params = url.pathname.split("[");
+      console.log({ url });
+      console.log(url.hash);
+      const params = url.hash.split("#")[1].split("[");
+
+      console.log({ params });
 
       const roomTitle = params[0].replace("/", "");
       const playerName = params[1].replace("]", "");
@@ -116,7 +120,6 @@ const HomePage = () => {
     );
   };
 
- 
   const GameMap = () => {
     // console.log(playerData.playerLand);
     return (
@@ -250,36 +253,77 @@ const HomePage = () => {
   const EndGameCard = () => {
     return (
       <div className="h-full w-full bg-black opacity-90 absolute top-0 z-index flex flex-col ">
-        <div className="py-10 px-20 self-end font-medium text-2xl cursor-pointer " onClick={() => {
-          updatePlayerData((prevState: any) => {
-            return {playerName: prevState.playerName, roomId: prevState.roomId, roomTitle: prevState.roomTitle, playerRole: prevState.playerRole}
-          })
-        }}>x</div>
+        <div
+          className="py-10 px-20 self-end font-medium text-2xl cursor-pointer "
+          onClick={() => {
+            updatePlayerData((prevState: any) => {
+              return {
+                playerName: prevState.playerName,
+                roomId: prevState.roomId,
+                roomTitle: prevState.roomTitle,
+                playerRole: prevState.playerRole,
+              };
+            });
+          }}
+        >
+          x
+        </div>
         <div className="flex-auto  m-20 flex justify-center items-center">
-          <img src={playerData?.winner ? winnerImg : loserImg} className="h-98 w-96 self-center" />
+          <img
+            src={playerData?.winner ? winnerImg : loserImg}
+            className="h-98 w-96 self-center"
+          />
         </div>
       </div>
     );
   };
 
+  const GameSound = () => {
+    if (
+      playerData?.playerLand?.length > 0 &&
+      !playerData?.winner &&
+      !playerData?.loser
+    ) {
+      return (
+        <div className="bg-red-400 h-24 w-full hidden">
+          <audio autoPlay loop>
+            <source src={tetrisAudio} type="audio/mp3" />
+          </audio>
+        </div>
+      );
+    }
+    return <></>;
+  };
 
   return (
-    <div className="h-screen bg-black flex w-full justify-center items-center text-white flex-col ">
-      {playerData && (
-        <div className="p-2">
-          Role: you are {playerData.playerRole ? playerData.playerRole : ""}
-        </div>
-      )}
-      {playerData?.playerLand?.length > 0 ? (
-        <div className="flex justify-between">
-          {HelperBoard()}
-          {GameMap()}
-          {OpponentSpecturmMap()}
-        </div>
-      ) : (
-        StartGameBtn()
-      )}
-      {(playerData?.winner || playerData?.loser) &&  <EndGameCard />}
+    <div className="h-screen bg-black flex w-full justify-center items-center text-white flex-col">
+      <div className="flex-1 flex items-center">
+        {playerData.playerRole === "leader" ? (
+          <div>
+            <div className="p-2">
+              Role: you are {playerData.playerRole ? playerData.playerRole : ""}
+            </div>
+            {StartGameBtn()}
+          </div>
+        ) : (
+          <div>
+            <div className="p-2">
+              Role: you are {playerData.playerRole ? playerData.playerRole : ""}
+            </div>
+            <p>Waiting for the game to start ...</p>
+          </div>
+        )}
+        {playerData?.playerLand?.length > 0 && (
+          <div className="flex justify-between">
+            {HelperBoard()}
+            {GameMap()}
+            {OpponentSpecturmMap()}
+          </div>
+        )}
+      </div>
+
+      {(playerData?.winner || playerData?.loser) && <EndGameCard />}
+      <GameSound />
     </div>
   );
 };
