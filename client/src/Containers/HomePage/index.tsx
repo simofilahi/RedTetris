@@ -1,7 +1,7 @@
 import { io } from "socket.io-client";
 import React, { useState, useEffect } from "react";
 
-const socket = io("http://10.11.12.4:1337");
+const socket = io("http://10.11.9.2:1337");
 /* eslint-disable import/first */
 import winnerImg from "../../assets/img/winner.png";
 import loserImg from "../../assets/img/loser.png";
@@ -25,22 +25,35 @@ const HomePage = () => {
 
   useEffect(() => {
     try {
-      var url = window.location;
+      let roomTitle;
+      let playerName;
+      let multiplayer = false;
 
-      console.log({ url });
-      console.log(url.hash);
-      const params = url.hash.split("#")[1].split("[");
+      try {
+        var url = window.location;
 
-      console.log({ params });
+        console.log({ url });
+        console.log(url.hash);
+        const params = url.hash.split("#")[1].split("[");
 
-      const roomTitle = params[0].replace("/", "");
-      const playerName = params[1].replace("]", "");
+        console.log({ params });
 
-      socket.emit("join", { roomTitle, playerName }, (err: any, data: any) => {
-        updatePlayerData((prevState: any) => {
-          return { ...prevState, ...data };
-        });
-      });
+        roomTitle = params[0].replace("/", "");
+        playerName = params[1].replace("]", "");
+        multiplayer = true;
+      } catch {
+        console.log({ multiplayer });
+      }
+
+      socket.emit(
+        "join",
+        { roomTitle, playerName, multiplayer },
+        (err: any, data: any) => {
+          updatePlayerData((prevState: any) => {
+            return { ...prevState, ...data };
+          });
+        }
+      );
 
       socket.on("game-started", () => {
         socket.emit("start-playing", {

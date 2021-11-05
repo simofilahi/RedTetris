@@ -18,6 +18,10 @@ const GameSchema = new Schema({
     enum: ["created", "started", "paused", "finished"],
     default: "created",
   },
+  multiplayer: {
+    type: Boolean,
+    default: false,
+  },
 });
 
-module.exports = mongoose.model("GameRoom", GameSchema);
+module.exports = mongoose.model("TetrisRooms", GameSchema);

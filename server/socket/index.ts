@@ -2,7 +2,7 @@ import { clear } from "console";
 import Player from "../utils/Player";
 import ShapesFactory from "../utils/shapesFactory";
 const GameModel = require("../models/game");
-const Stream = require("stream");
+const mongoose = require("mongoose");
 
 // INTERFACES
 interface userData {
@@ -10,6 +10,7 @@ interface userData {
   roomTitle?: string;
   playerName?: string;
   player?: any;
+  multiplayer?: boolean;
 }
 
 // UTILS
@@ -92,6 +93,9 @@ async function checkWinner(
     // RESET THE GAME DATA FOR THAT CURRENT PLAYER TO NULL
     socket.data.gameData.player = null;
 
+    // DROP THE GAME DOC
+    dropGameDocByWinner(socket);
+
     return true;
   }
   return false;
@@ -116,15 +120,39 @@ async function getDroppedLineCount(socket: any, player: any) {
 async function getNextShape(socket: any, player: any) {
   socket.emit("next-shape", player.getNextShape());
 }
+
+// DROP THE GAME DOC AT THE END
+async function dropGameDoc(socket: any) {
+  const { roomId } = socket.data.userData;
+
+  const game = await GameModel.find({ roomId });
+
+  if (!game[0].multiplayer) {
+    await GameModel.deleteOne({ roomId });
+  }
+}
+
+// DROP THE GAME DOC AT THE END BY WINNER
+async function dropGameDocByWinner(socket: any) {
+  try {
+    const { roomId } = socket.data.userData;
+
+    await GameModel.deleteOne({ roomId });
+  } catch {}
+}
 //
 
 // JOINING THE GAME ROOM
 async function joinToGame(
   socket: any,
-  { roomTitle, playerName }: userData,
+  { roomTitle, playerName, multiplayer }: userData,
   cb: any
 ) {
   try {
+    if (!multiplayer) {
+      roomTitle = mongoose.Types.ObjectId().toString();
+      playerName = "anonymous";
+    }
     // LOOK FOR GAME IF IT'S CREATED IN THE BACKEND
     let game = await GameModel.find({ title: roomTitle });
 
@@ -136,6 +164,7 @@ async function joinToGame(
       // CREATE DB DOC
       doc = new GameModel({
         title: roomTitle,
+        multiplayer: multiplayer,
       });
 
       // ADD PLAYER TO PLAYER ARR, THE FIRST ONE WILL BE THE LEADER OF THE GAME
@@ -193,7 +222,7 @@ async function joinToGame(
     // ADD CURRENT SOCKET TO A ROOM
     socket.join(roomId);
 
-    console.log({ playerRole });
+    console.log(socket.data.userData);
     // SHARE THE DATA WITH THE CLIENT BY A CALLBACK
     cb(false, { roomTitle, playerName, roomId, playerRole });
   } catch (e) {
@@ -205,9 +234,11 @@ async function joinToGame(
 async function orderToStartTheGameByLeader(socket: any) {
   const { playerName, roomTitle }: userData = socket.data.userData;
 
+  console.log({ roomTitle });
   // LOOK FOR GAME NAME IF IT'S ALREADY CREATED IN DB
   const game = await GameModel.findOne({ roomTitle });
 
+  console.log({ game });
   // INCOMING USER ORDER EVENT SHOULD MATCH THE FRIST ONE WHO JOINED THE GAME
   if (
     game?.players[0]["name"] === playerName &&
@@ -216,6 +247,8 @@ async function orderToStartTheGameByLeader(socket: any) {
     // EMIT GAME STARTD EVENT TO ALL PLAYERS JOINED TO THE GAME ROOM ID EXCEPT THE LEADER
     socket.to(game._id.toString()).emit("game-started");
 
+    console.log("Leader here ****");
+
     // EMIT GAME STARTD EVENT TO THE LEADER
     socket.emit("game-started");
   }
@@ -223,8 +256,9 @@ async function orderToStartTheGameByLeader(socket: any) {
 
 // START TH GAME FOR ALL PLAYERS JOINED TO THE SAME GAME
 async function StartGame(socket: any, io: any) {
-  const { playerName, roomId }: userData = socket.data.userData;
+  const { playerName, roomId, multiplayer }: userData = socket.data.userData;
 
+  console.log("holla");
   const { player } = socket.data.gameData;
   const delay = (ms: number) =>
     new Promise((resolve) => setTimeout(resolve, ms));
@@ -232,15 +266,18 @@ async function StartGame(socket: any, io: any) {
   for (;;) {
     await delay(500);
 
+    console.log("I'm here");
+
     // CHECK IF CURRENT PLAYER LOSES
     if (checkGameOver(socket, { player, roomId })) {
       return;
     }
 
     // CHECK THE GAME WINNER
-    if (await checkWinner(io, socket, roomId)) {
+    if (multiplayer && (await checkWinner(io, socket, roomId))) {
       return;
     }
+
     // GET THE NEXT TETRIS SHAPE AND SEND IT TO THE CURRENT PLAYER
     getNextShape(socket, player);
 
@@ -411,6 +448,7 @@ module.exports = (io: any) => {
 
     // ORDER TO START THE GAME
     socket.on("start-order", () => {
+      console.log("I'M HERE ");
       orderToStartTheGameByLeader(socket);
     });
 
@@ -452,8 +490,7 @@ module.exports = (io: any) => {
     // IF SOCKET CLIENT DISCOONECTED
     socket.on("disconnect", () => {
       console.log("disconnect");
-      // socket.data.player = null;
-      // socket.data.userData = null;
+      dropGameDoc(socket);
     });
   });
 };
