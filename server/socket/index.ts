@@ -81,9 +81,10 @@ function getPlayerRole(players: any, playerName: any): string {
 async function checkWinner(
   io: any,
   socket: any,
-  roomId: number | undefined
+  roomId: number | undefined,
+  multiplayer: boolean | undefined
 ): Promise<boolean> {
-  if ((await getSocketInstanceCount(io, roomId)) < 2) {
+  if (multiplayer && (await getSocketInstanceCount(io, roomId)) < 2) {
     // SEND WINNER
     socket.emit("winner");
 
@@ -123,12 +124,17 @@ async function getNextShape(socket: any, player: any) {
 
 // DROP THE GAME DOC AT THE END
 async function dropGameDoc(socket: any) {
-  const { roomId } = socket.data.userData;
+  if (socket.data.userData) {
+    const { roomId } = socket.data.userData;
 
-  const game = await GameModel.find({ roomId });
+    // FIND THE GAME ROOM DOC
+    const game = await GameModel.find({ roomId });
 
-  if (!game[0].multiplayer) {
-    await GameModel.deleteOne({ roomId });
+    // VERIFY IF THE GAME IS NOT CONCERN MULTIPLAYERS
+    if (!game[0].multiplayer) {
+      // DELETE THE GAME ROOM
+      await GameModel.deleteOne({ roomId });
+    }
   }
 }
 
@@ -149,10 +155,13 @@ async function joinToGame(
   cb: any
 ) {
   try {
+    console.log(multiplayer);
     if (!multiplayer) {
       roomTitle = mongoose.Types.ObjectId().toString();
       playerName = "anonymous";
     }
+
+    console.log({ roomTitle });
     // LOOK FOR GAME IF IT'S CREATED IN THE BACKEND
     let game = await GameModel.find({ title: roomTitle });
 
@@ -210,7 +219,6 @@ async function joinToGame(
     socket.data.gameData = {};
     socket.data.gameData["player"] = new Player(roomId);
 
-    console.log({ playerRole });
     // CREATE USERDATA IN SOCKET DATA
     socket.data.userData = {
       roomTitle,
@@ -222,7 +230,6 @@ async function joinToGame(
     // ADD CURRENT SOCKET TO A ROOM
     socket.join(roomId);
 
-    console.log(socket.data.userData);
     // SHARE THE DATA WITH THE CLIENT BY A CALLBACK
     cb(false, { roomTitle, playerName, roomId, playerRole });
   } catch (e) {
@@ -234,7 +241,6 @@ async function joinToGame(
 async function orderToStartTheGameByLeader(socket: any) {
   const { playerName, roomTitle }: userData = socket.data.userData;
 
-  console.log({ roomTitle });
   // LOOK FOR GAME NAME IF IT'S ALREADY CREATED IN DB
   const game = await GameModel.findOne({ roomTitle });
 
@@ -244,10 +250,9 @@ async function orderToStartTheGameByLeader(socket: any) {
     game?.players[0]["name"] === playerName &&
     game?.players[0]["role"] === "leader"
   ) {
+    console.log("Here order ");
     // EMIT GAME STARTD EVENT TO ALL PLAYERS JOINED TO THE GAME ROOM ID EXCEPT THE LEADER
     socket.to(game._id.toString()).emit("game-started");
-
-    console.log("Leader here ****");
 
     // EMIT GAME STARTD EVENT TO THE LEADER
     socket.emit("game-started");
@@ -258,7 +263,6 @@ async function orderToStartTheGameByLeader(socket: any) {
 async function StartGame(socket: any, io: any) {
   const { playerName, roomId, multiplayer }: userData = socket.data.userData;
 
-  console.log("holla");
   const { player } = socket.data.gameData;
   const delay = (ms: number) =>
     new Promise((resolve) => setTimeout(resolve, ms));
@@ -266,15 +270,13 @@ async function StartGame(socket: any, io: any) {
   for (;;) {
     await delay(500);
 
-    console.log("I'm here");
-
     // CHECK IF CURRENT PLAYER LOSES
     if (checkGameOver(socket, { player, roomId })) {
       return;
     }
 
     // CHECK THE GAME WINNER
-    if (multiplayer && (await checkWinner(io, socket, roomId))) {
+    if (await checkWinner(io, socket, roomId, multiplayer)) {
       return;
     }
 
@@ -331,7 +333,7 @@ function moveToRight(socket: any) {
 
 // MOVE SHAPE DOWN
 async function moveDown(socket: any, io: any) {
-  const { playerName, roomId } = socket.data.userData;
+  const { playerName, roomId, multiplayer } = socket.data.userData;
   const { player } = socket.data.gameData;
 
   // CHECK IF PLAYER INSTANCE EXIST
@@ -345,7 +347,7 @@ async function moveDown(socket: any, io: any) {
     }
 
     // CHECK THE WINNER OF GAME
-    if (await checkWinner(io, socket, roomId)) {
+    if (await checkWinner(io, socket, roomId, multiplayer)) {
       return;
     }
 
@@ -441,56 +443,61 @@ function instantDrop(socket: any) {
 
 module.exports = (io: any) => {
   io.on("connection", (socket: any) => {
-    // JOIN THE GAME
-    socket.on("join", async ({ roomTitle, playerName }: any, cb: any) => {
-      joinToGame(socket, { roomTitle, playerName }, cb);
-    });
+    try {
+      // JOIN THE GAME
+      socket.on(
+        "join",
+        async ({ roomTitle, playerName, multiplayer }: any, cb: any) => {
+          joinToGame(socket, { roomTitle, playerName, multiplayer }, cb);
+        }
+      );
 
-    // ORDER TO START THE GAME
-    socket.on("start-order", () => {
-      console.log("I'M HERE ");
-      orderToStartTheGameByLeader(socket);
-    });
+      // ORDER TO START THE GAME
+      socket.on("start-order", () => {
+        orderToStartTheGameByLeader(socket);
+      });
 
-    // START PLAYING
-    socket.on("start-playing", () => {
-      StartGame(socket, io);
-    });
+      // START PLAYING
+      socket.on("start-playing", () => {
+        StartGame(socket, io);
+      });
 
-    // MOVE SHAPE TO THE LEFT
-    socket.on("left-key", () => {
-      moveToleft(socket);
-    });
+      // MOVE SHAPE TO THE LEFT
+      socket.on("left-key", () => {
+        moveToleft(socket);
+      });
 
-    // MOVE SHAPE TO THE RIGHT
-    socket.on("right-key", () => {
-      moveToRight(socket);
-    });
+      // MOVE SHAPE TO THE RIGHT
+      socket.on("right-key", () => {
+        moveToRight(socket);
+      });
 
-    // MOVE SHAPE DOWN
-    socket.on("down-key", () => {
-      moveDown(socket, io);
-    });
+      // MOVE SHAPE DOWN
+      socket.on("down-key", () => {
+        moveDown(socket, io);
+      });
 
-    // ROTATE THE SHAPE
-    socket.on("rotate", () => {
-      rotate(socket);
-    });
+      // ROTATE THE SHAPE
+      socket.on("rotate", () => {
+        rotate(socket);
+      });
 
-    // INSTANT DROP OF THE CURRENT SHAPE
-    socket.on("upper-key", () => {
-      instantDrop(socket);
-    });
+      // INSTANT DROP OF THE CURRENT SHAPE
+      socket.on("upper-key", () => {
+        instantDrop(socket);
+      });
 
-    // ADD UNUSABLE ROWS TO THE MAP
-    socket.on("add-unusable-rows", (rowsCount: number) => {
-      AddLines(socket, rowsCount);
-    });
+      // ADD UNUSABLE ROWS TO THE MAP
+      socket.on("add-unusable-rows", (rowsCount: number) => {
+        AddLines(socket, rowsCount);
+      });
 
-    // IF SOCKET CLIENT DISCOONECTED
-    socket.on("disconnect", () => {
-      console.log("disconnect");
-      dropGameDoc(socket);
-    });
+      // IF SOCKET CLIENT DISCOONECTED
+      socket.on("disconnect", () => {
+        dropGameDoc(socket);
+      });
+    } catch (error) {
+      console.log({ error });
+    }
   });
 };

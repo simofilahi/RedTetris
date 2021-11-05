@@ -6,9 +6,14 @@ const socket = io("http://10.11.9.2:1337");
 import winnerImg from "../../assets/img/winner.png";
 import loserImg from "../../assets/img/loser.png";
 import tetrisAudio from "../../assets/audio/tetris.mp3";
+import volumeImg from "../../assets/img/volume.png";
+import muteImg from "../../assets/img/mute.png";
+import useAudio from "../../hooks/useAudio";
 
 const HomePage = () => {
   const [playerData, updatePlayerData]: any = useState({});
+  const [soundState, updateSoundState]: any = useState(true);
+  const [playing, setPlaying] = useAudio(tetrisAudio);
 
   function getKey(e: any) {
     console.log(e.keyCode);
@@ -41,6 +46,7 @@ const HomePage = () => {
         roomTitle = params[0].replace("/", "");
         playerName = params[1].replace("]", "");
         multiplayer = true;
+        console.log({ roomTitle, playerName, multiplayer });
       } catch {
         console.log({ multiplayer });
       }
@@ -56,6 +62,7 @@ const HomePage = () => {
       );
 
       socket.on("game-started", () => {
+        setPlaying(true);
         socket.emit("start-playing", {
           roomTitle: playerData.roomTitle,
           playerName: playerData.playerName,
@@ -80,12 +87,14 @@ const HomePage = () => {
       });
 
       socket.on("gameOver", () => {
+        setPlaying(false);
         updatePlayerData((prevState: any) => {
           return { ...prevState, loser: true };
         });
       });
 
       socket.on("winner", () => {
+        setPlaying(false);
         updatePlayerData((prevState: any) => {
           return { ...prevState, winner: true };
         });
@@ -251,6 +260,22 @@ const HomePage = () => {
     );
   };
 
+  const SoundControl = () => {
+    return (
+      <div className="h-48 w-4/5 flex flex-col py-5">
+        <div className="flex-1 w-full border-white border-2 flex justify-center items-center bg-white">
+          <img
+            src={playing === true ? volumeImg : muteImg}
+            className="h-16 w-16 bg-white cursor-pointer"
+            onClick={() => {
+              setPlaying(!playing);
+            }}
+          />
+        </div>
+      </div>
+    );
+  };
+
   const HelperBoard = () => {
     return (
       <div className="p-10 border-white border-2  w-96  overflow-y-scroll">
@@ -258,6 +283,7 @@ const HomePage = () => {
           <PlayerNextShape />
           <PlayerScore />
           <PlayerDropedLines />
+          <SoundControl />
         </div>
       </div>
     );
@@ -291,52 +317,77 @@ const HomePage = () => {
     );
   };
 
-  const GameSound = () => {
-    if (
-      playerData?.playerLand?.length > 0 &&
-      !playerData?.winner &&
-      !playerData?.loser
-    ) {
+  // const GameSound = () => {
+  //   if (
+  //     playerData?.playerLand?.length > 0 &&
+  //     !playerData?.winner &&
+  //     !playerData?.loser
+  //   ) {
+  //     return (
+  //       <div className="bg-red-400 h-24 w-full">
+  //         {soundState ? (
+  //           <audio autoPlay loop >
+  //             <source src={tetrisAudio} type="audio/mp3" />
+  //           </audio>
+  //         ) : (
+  //           <></>
+  //         )}
+  //       </div>
+  //     );
+  //   }
+  //   return <></>;
+  // };
+
+  const GameComponents = () => {
+    if (playerData?.playerLand?.length > 0) {
       return (
-        <div className="bg-red-400 h-24 w-full hidden">
-          <audio autoPlay loop>
-            <source src={tetrisAudio} type="audio/mp3" />
-          </audio>
+        <div className="flex justify-between">
+          {HelperBoard()}
+          {GameMap()}
+          {OpponentSpecturmMap()}
         </div>
       );
     }
     return <></>;
   };
 
+  const StartCmp = () => {
+    if (!playerData?.playerLand?.length && playerData.playerRole === "leader") {
+      return (
+        <div>
+          <div className="p-2">
+            Role: you are the{" "}
+            {playerData.playerRole ? playerData.playerRole : ""}
+          </div>
+          {StartGameBtn()}
+        </div>
+      );
+    } else if (!playerData?.playerLand?.length) {
+      return (
+        <div>
+          <div className="p-2">
+            Role: you are a {playerData.playerRole ? playerData.playerRole : ""}
+          </div>
+          <p>Waiting for the game to start ...</p>
+        </div>
+      );
+    }
+    return <></>;
+  };
+
+  const EndGameCmp = () => {
+    if (playerData?.winner || playerData?.loser) return <EndGameCard />;
+    return <></>;
+  };
+
   return (
     <div className="h-screen bg-black flex w-full justify-center items-center text-white flex-col">
       <div className="flex-1 flex items-center">
-        {playerData.playerRole === "leader" ? (
-          <div>
-            <div className="p-2">
-              Role: you are {playerData.playerRole ? playerData.playerRole : ""}
-            </div>
-            {StartGameBtn()}
-          </div>
-        ) : (
-          <div>
-            <div className="p-2">
-              Role: you are {playerData.playerRole ? playerData.playerRole : ""}
-            </div>
-            <p>Waiting for the game to start ...</p>
-          </div>
-        )}
-        {playerData?.playerLand?.length > 0 && (
-          <div className="flex justify-between">
-            {HelperBoard()}
-            {GameMap()}
-            {OpponentSpecturmMap()}
-          </div>
-        )}
+        <StartCmp />
+        <GameComponents />
       </div>
-
-      {(playerData?.winner || playerData?.loser) && <EndGameCard />}
-      <GameSound />
+      {/* <GameSound /> */}
+      <EndGameCmp />
     </div>
   );
 };
