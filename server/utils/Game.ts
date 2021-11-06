@@ -1,36 +1,65 @@
-import { parse } from "path/posix";
 import ShapesFactory from "./shapesFactory";
-import Shape from "./shapesFactory";
-
-export interface Square {
-  status: string;
-  color: string;
-  value: string;
-}
+import { Square, ShapeInterface } from "./interfaces/index";
 
 class Game extends ShapesFactory {
+  // DATA OF SQUARE IN SHAPE
   square: Square = { status: "", color: "", value: "." };
-  baseSquare: any = {
+
+  /* 
+    DATA OF SQUARE IN SHAPE, THESE FOR THE SHAPES
+    ADDED AT THE BOTOM TO MAKE MAP SMALL
+  */
+  baseSquare: Square = {
     status: "landed",
     color: "#FFFFFF",
     value: "#",
   };
-  map: any;
-  spectrumMap: any;
-  shape: any;
+
+  // THE PLAYER MAP
+  map: Array<Array<Square>>;
+
+  // THE PLAYER SPCTRUM MAP
+  spectrumMap: Array<Array<Square>>;
+
+  // TETRIS SHAPE
+  shape: ShapeInterface;
+
+  // COLUMN COUNT OF THE MAP
   colCount: number;
+
+  // ROW COUNT OF THE MAP
   rowCount: number;
+
+  // GRAVITY INTERVAL
   gravityInterval: number;
+
+  // GAME OVER STATUS
   gameOver: boolean;
-  gameStream: any;
-  data: any;
+
+  // PLAYER'S SCORE
   score: number;
+
+  // THE COUNT OF ROWS THAT PLAYER DROPED
   removedLinesCount: number;
+
+  // THE COUNT OF TOTAL ROWS DROPED
   droppedRowsCount: number;
-  shapesFactory: any;
+
+  /* THE POOLID OF POOL SHAPE
+    THAT WILL BE USED BY THE CURRENT PLAYER
+  */
   shapesPoolId: string;
+
+  /* THE SHAPE INDEX WILL BE USE TO GET
+   SHAPE BY INDEX FROM THE SHAPES POOL
+  */
   shapeIndex: number;
-  nextShape: any;
+
+  /* THIS VAR WILL HOLD THE NEXT SHAPE 
+   THAT WE WILL SEND TO PLAYER AFTER THIS
+   CURRENT SHAPE LANDED
+  */
+  nextShape: ShapeInterface;
 
   constructor(shapesPoolId: string) {
     super(shapesPoolId);
@@ -40,6 +69,8 @@ class Game extends ShapesFactory {
     this.rowCount = 20;
     this.map = this.mapGenerator();
     this.spectrumMap = this.mapGenerator();
+    this.shape = this.getShape(this.shapesPoolId, this.shapeIndex);
+    this.nextShape = this.getShape(this.shapesPoolId, this.shapeIndex + 1);
     this.addShapeToMap();
     this.gravityInterval = 1000;
     this.gameOver = false;
@@ -49,7 +80,7 @@ class Game extends ShapesFactory {
   }
 
   // GENERATE COLOS FOR THE MAP
-  *colGenerator(square: any = this.square) {
+  *colGenerator(square: Square = this.square) {
     for (let i: number = 0; i < this.colCount; i++) yield square;
   }
 
@@ -173,11 +204,9 @@ class Game extends ShapesFactory {
 
   // GOT RANDOM SHAPE AND ADD IT INTO MAP
   addShapeToMap(): void {
-    this.shape = { ...this.getShape(this.shapesPoolId, this.shapeIndex) };
+    this.shape = this.getShape(this.shapesPoolId, this.shapeIndex);
     this.shapeIndex += 1;
-    this.nextShape = JSON.parse(
-      JSON.stringify(this.getShape(this.shapesPoolId, this.shapeIndex))
-    );
+    this.nextShape = this.getShape(this.shapesPoolId, this.shapeIndex);
     this.updateMap();
   }
 
@@ -358,9 +387,9 @@ class Game extends ShapesFactory {
   }
 
   // ROTATION 90 DEGREE TO CURRENT SHAPE
-  rotate() {
+  rotate(): void {
     // THIS ARRAY WILL HOLD ARRAYS THAT REPRESONT ROWS OF A CURRENT SHAPE
-    const matrix: any = [];
+    const matrix: Array<any> = [];
 
     // ITERATE TROUGH ROWS OF CURRENT SHAPE
     for (
@@ -401,7 +430,7 @@ class Game extends ShapesFactory {
     this.updateMap();
   }
 
-  landSpectrum() {
+  landSpectrum(): void {
     /*
       - ITERATE TROUGH GAME MAP
       - VERIFY CURRENT POINT IF IS IT NOT EMPTY
@@ -434,18 +463,14 @@ class Game extends ShapesFactory {
     }
   }
 
-  // // FOR DEBBUGING PURPOSE
-  // falling() {
-  //   this.moveDown();
-  // }
-
   // CHECK FOR GAME IS OVER
-  gameOverStatus() {
+  gameOverStatus(): boolean {
     if (this.gameOver) return true;
+    return false;
   }
 
   // GET THE LAND SPECTURM OF THE PLAYER
-  getlandSpectrum() {
+  getlandSpectrum(): Array<[Square]> {
     return JSON.parse(JSON.stringify(this.spectrumMap));
   }
 
@@ -460,7 +485,7 @@ class Game extends ShapesFactory {
   }
 
   // GET THE GAME MAP OF THE PLAYER
-  getMap() {
+  getMap(): Array<[Square]> {
     this.dropRows();
     return JSON.parse(JSON.stringify(this.map));
   }

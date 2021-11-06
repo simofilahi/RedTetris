@@ -1,6 +1,4 @@
-// interface Pieces = Array<
-// {name: string, shape: Array<Array<number>>, startPos: {row: number, col: number}}
-// >
+import { ShapeInterface } from "./interfaces/index";
 
 const shapes: any = {
   "I-tetromino": {
@@ -111,46 +109,56 @@ class ShapesFactory {
     this.generateShapesPool(poolId);
   }
 
-  generateShapesPool(poolId: string) {
+  // GENERATE POOL OF SHAPES FOR A SPECIFIC GAME BY POOLID
+  generateShapesPool(poolId: string): void {
+    // VERIFY POOL  ALREADY EXIST
     if (!shapesPools[poolId]) {
+      // CREATE NEW ARRAY FOR THE POOLID PROPERTY
       shapesPools[poolId] = [];
+
+      // GET THE KEYS OF SHAPES ARRAY, (KEYS ARE THE NAMES OF TETRIS PIECES)
       const keys = Object.keys(shapes);
-      // console.log({ keys });
+
+      // ADD 100 RANDOM SHAPE TO THE POOL
       for (let index = 0; index < 100; index++) {
+        // GET RANDOM SHAPE FROM SHAPES COLLECTION
         const shape = shapes[keys[Math.floor(keys.length * Math.random())]];
-        // console.log({ shape });
+
+        // PUSH RANDOM SHAPE TO THE ARRAY
         shapesPools[poolId].push(JSON.parse(JSON.stringify(shape)));
       }
     }
   }
 
-  addMoreShapeToPool(poolId: string) {
+  // IN CASE IF A POOL OF SHAPES CONSUMED, WE ADD MORE 100 SHAPES TO IT
+  addMoreShapeToPool(poolId: string): void {
     if (shapesPools[poolId]) {
       const keys = Object.keys(shapes);
-      for (let index = 0; index < 100; index++) {
+      for (let index: number = 0; index < 100; index++) {
+        // GET RANDOM SHAPE FROM SHAPES COLLECTION
         const shape = shapes[keys[Math.floor(keys.length * Math.random())]];
+
+        // ADD SHAPE TO THE POOL ARRAY
         shapesPools[poolId].push(JSON.parse(JSON.stringify(shape)));
       }
     }
   }
 
+  // DROP THE POOL OF SHAPES AT THE END OF GAME
   dropShapePool(poolId: number) {
     if (!shapesPools[poolId]) {
     }
   }
 
-  getShape = (poolId: string, index: number) => {
+  // GET A SHAPE FROM A SPECIFIC POOL BY INDEX
+  getShape = (poolId: string, index: number): ShapeInterface => {
+    /* VERIFY IF THE POOL OF SHAPES IS EMPTY, 
+      IF IT'S CALL FUNCTION TO ADD MORE SHAPES TO IT
+    */
     if (index > shapesPools[poolId].length) this.addMoreShapeToPool(poolId);
-    if (shapesPools[poolId]) {
-      for (let i = 0; i < shapesPools[poolId].length; i++) {
-        if (i == index)
-          return {
-            ...JSON.parse(JSON.stringify(shapesPools[poolId][index])),
-          };
-      }
-      return null;
-    }
-    return null;
+
+    // GET THE SHAPE BY INDEX
+    return JSON.parse(JSON.stringify(shapesPools[poolId][index]));
   };
 }
 

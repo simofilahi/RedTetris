@@ -1,7 +1,7 @@
 import { io } from "socket.io-client";
 import React, { useState, useEffect } from "react";
 
-const socket = io("http://10.11.9.2:1337");
+const socket = io("http://localhost:1337");
 /* eslint-disable import/first */
 import winnerImg from "../../assets/img/winner.png";
 import loserImg from "../../assets/img/loser.png";
