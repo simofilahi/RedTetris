@@ -11,8 +11,9 @@ interface userData {
   playerName?: string;
   player?: any;
   multiplayer?: boolean;
+  gravityInterval?: number;
+  gameStatus?: string;
 }
-
 // UTILS
 
 // GET THE SOCKET INSTANCES COUNT JOINED INTO THE SAME ROOMID
@@ -78,6 +79,7 @@ function getPlayerRole(players: any, playerName: any): string {
   return "follower";
 }
 
+// CHECK THE WINNER
 async function checkWinner(
   io: any,
   socket: any,
@@ -151,7 +153,7 @@ async function dropGameDocByWinner(socket: any) {
 // JOINING THE GAME ROOM
 async function joinToGame(
   socket: any,
-  { roomTitle, playerName, multiplayer }: userData,
+  { roomTitle, playerName, multiplayer, gravityInterval }: userData,
   cb: any
 ) {
   try {
@@ -161,10 +163,10 @@ async function joinToGame(
       playerName = "anonymous";
     }
 
-    console.log({ roomTitle });
     // LOOK FOR GAME IF IT'S CREATED IN THE BACKEND
     let game = await GameModel.find({ title: roomTitle });
 
+    console.log({ game });
     // DOC VARIABLE WILL HOLD THE DATA OF THE ROOM
     let doc;
 
@@ -174,6 +176,7 @@ async function joinToGame(
       doc = new GameModel({
         title: roomTitle,
         multiplayer: multiplayer,
+        gravityInterval: gravityInterval,
       });
 
       // ADD PLAYER TO PLAYER ARR, THE FIRST ONE WILL BE THE LEADER OF THE GAME
@@ -225,13 +228,14 @@ async function joinToGame(
       playerName,
       roomId,
       playerRole,
+      gravityInterval: doc.gravityInterval,
     };
 
     // ADD CURRENT SOCKET TO A ROOM
     socket.join(roomId);
 
     // SHARE THE DATA WITH THE CLIENT BY A CALLBACK
-    cb(false, { roomTitle, playerName, roomId, playerRole });
+    cb(false, { roomTitle, playerName, roomId, playerRole, gravityInterval });
   } catch (e) {
     console.log({ e });
   }
@@ -239,18 +243,17 @@ async function joinToGame(
 
 // ORDER EVENT FROM GAME LEADER TO START THE GAME
 async function orderToStartTheGameByLeader(socket: any) {
-  const { playerName, roomTitle }: userData = socket.data.userData;
+  const { playerName, roomTitle, roomId }: userData = socket.data.userData;
 
+  console.log({ roomId });
   // LOOK FOR GAME NAME IF IT'S ALREADY CREATED IN DB
-  const game = await GameModel.findOne({ roomTitle });
+  const game = await GameModel.findOne({ _id: roomId });
 
-  console.log({ game });
   // INCOMING USER ORDER EVENT SHOULD MATCH THE FRIST ONE WHO JOINED THE GAME
   if (
     game?.players[0]["name"] === playerName &&
     game?.players[0]["role"] === "leader"
   ) {
-    console.log("Here order ");
     // EMIT GAME STARTD EVENT TO ALL PLAYERS JOINED TO THE GAME ROOM ID EXCEPT THE LEADER
     socket.to(game._id.toString()).emit("game-started");
 
@@ -261,14 +264,21 @@ async function orderToStartTheGameByLeader(socket: any) {
 
 // START TH GAME FOR ALL PLAYERS JOINED TO THE SAME GAME
 async function StartGame(socket: any, io: any) {
-  const { playerName, roomId, multiplayer }: userData = socket.data.userData;
-
-  const { player } = socket.data.gameData;
   const delay = (ms: number) =>
     new Promise((resolve) => setTimeout(resolve, ms));
 
   for (;;) {
-    await delay(500);
+    const {
+      playerName,
+      roomId,
+      multiplayer,
+      gravityInterval,
+      gameStatus,
+    }: userData = socket.data.userData;
+
+    const { player } = socket.data.gameData;
+    if (gameStatus === "stopped") continue;
+    await delay(gravityInterval || 500);
 
     // CHECK IF CURRENT PLAYER LOSES
     if (checkGameOver(socket, { player, roomId })) {

@@ -1,7 +1,7 @@
 import ShapesFactory from "./shapesFactory";
-import { Square, ShapeInterface } from "./interfaces/index";
+import { Square, ShapeInterface, GameInt } from "./interfaces/index";
 
-class Game extends ShapesFactory {
+class Game extends ShapesFactory implements GameInt {
   // DATA OF SQUARE IN SHAPE
   square: Square = { status: "", color: "", value: "." };
 
@@ -80,12 +80,12 @@ class Game extends ShapesFactory {
   }
 
   // GENERATE COLOS FOR THE MAP
-  *colGenerator(square: Square = this.square) {
+  *colGenerator(square: Square = this.square): any {
     for (let i: number = 0; i < this.colCount; i++) yield square;
   }
 
   // GENERATE ROWS FOR THE MAP
-  *rowGenerator() {
+  *rowGenerator(): any {
     for (let i: number = 0; i < this.rowCount; i++)
       yield [...this.colGenerator()];
   }
@@ -96,9 +96,8 @@ class Game extends ShapesFactory {
   }
 
   // MAKE THE MAP SMALLER
-  addRows(rowsCount: any): void {
+  addRows(rowsCount: number): void {
     if (rowsCount) {
-      // this.draw();
       // REMOVE FIRST ROWS DEPEND ON ROW COUNT
       for (let i = 0; i < rowsCount; i++) {
         this.map.shift();
@@ -108,8 +107,6 @@ class Game extends ShapesFactory {
       for (let i = 0; i < rowsCount; i++) {
         this.map.push([...this.colGenerator(this.baseSquare)]);
       }
-      // this.draw();
-      // process.exit(0);
     }
   }
 
@@ -198,8 +195,6 @@ class Game extends ShapesFactory {
           };
       }
     }
-    // DRAW THE MAP
-    // this.draw();
   }
 
   // GOT RANDOM SHAPE AND ADD IT INTO MAP
@@ -211,12 +206,12 @@ class Game extends ShapesFactory {
   }
 
   // GET THE NEXT TETRIS SHAPE FOR THE CURRENT PLAYER
-  getNextShape() {
-    return this.nextShape;
+  getNextShape(): ShapeInterface {
+    return JSON.parse(JSON.stringify(this.nextShape));
   }
 
   // CLEAR THE MAP EXPECEPT FOR LANDED SHAPES
-  clear() {
+  clear(): void {
     for (let mapRow: number = 0; mapRow < this.map.length; mapRow++) {
       for (let mapCol: number = 0; mapCol < this.map[mapRow].length; mapCol++) {
         if (this.map[mapRow][mapCol]["status"] === "active") {
@@ -229,7 +224,7 @@ class Game extends ShapesFactory {
   }
 
   // SET LANDED VARIABLE TO TRUE OF A SHAPE
-  setShapeLanded() {
+  setShapeLanded(): void {
     /* 
       IF THE CURRENT SHAPE LANDED SET
       ITS STATUS TO LANDED SO THE CLEAR
@@ -253,8 +248,8 @@ class Game extends ShapesFactory {
     if (landed) this.landSpectrum();
   }
 
-  // DRAW MAP
-  draw() {
+  // DRAW MAP (DEBUGGING PURPOSE)
+  draw(): void {
     console.log("--------------------------------");
     console.log("--------------------------------");
     console.log("");
@@ -272,7 +267,7 @@ class Game extends ShapesFactory {
   }
 
   // MOVE SHAPE DOWN
-  moveDown() {
+  moveDown(): boolean {
     /* IF THERE ARE NO COLLISOINS
        KEEP INCREMENT ROW AND MOVE SHAPE DOWN
        ELSE SET THE CURRENT SHAPE AS LANDED AND ADD NEW
@@ -294,12 +289,12 @@ class Game extends ShapesFactory {
   }
 
   // MOVE SHAPE DOWN UNTIL REACH THE LAND OF MAP
-  instantDrop() {
+  instantDrop(): void {
     while (this.moveDown());
   }
 
   // MOVE SHAPE TO THE LEFT
-  moveToLeft() {
+  moveToLeft(): void {
     /* IF THERE ARE NO COLLISOINS
        KEEP DEINCREMENT COL AND MOVE SHAPE TO LEFT
     */
@@ -315,7 +310,7 @@ class Game extends ShapesFactory {
   }
 
   // MOVE SHAPE TO THE RIGHT
-  moveToRight() {
+  moveToRight(): void {
     /* IF THERE ARE NO COLLISOINS
        KEEP INCREMENT COL AND MOVE SHAPE TO RIGHT
     */
@@ -330,7 +325,8 @@ class Game extends ShapesFactory {
     }
   }
 
-  collisionDetecter() {
+  // DETECT THE COLLISION
+  collisionDetecter(): boolean {
     // DEEP COPY OF CURRENT SHAPE
     const shapeCpy = { ...JSON.parse(JSON.stringify(this.shape)) };
 
@@ -430,6 +426,7 @@ class Game extends ShapesFactory {
     this.updateMap();
   }
 
+  // SPECTRUM OF CURRENT PLAYER MAP
   landSpectrum(): void {
     /*
       - ITERATE TROUGH GAME MAP
@@ -470,7 +467,7 @@ class Game extends ShapesFactory {
   }
 
   // GET THE LAND SPECTURM OF THE PLAYER
-  getlandSpectrum(): Array<[Square]> {
+  getlandSpectrum(): Array<Array<ShapeInterface>> {
     return JSON.parse(JSON.stringify(this.spectrumMap));
   }
 
@@ -485,7 +482,7 @@ class Game extends ShapesFactory {
   }
 
   // GET THE GAME MAP OF THE PLAYER
-  getMap(): Array<[Square]> {
+  getMap(): Array<Array<ShapeInterface>> {
     this.dropRows();
     return JSON.parse(JSON.stringify(this.map));
   }

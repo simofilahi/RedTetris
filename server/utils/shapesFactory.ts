@@ -1,4 +1,4 @@
-import { ShapeInterface } from "./interfaces/index";
+import { ShapeInterface, shapeFactoryInt } from "./interfaces/index";
 
 const shapes: any = {
   "I-tetromino": {
@@ -104,7 +104,7 @@ const shapes: any = {
 
 let shapesPools: any = {};
 
-class ShapesFactory {
+class ShapesFactory implements shapeFactoryInt {
   constructor(poolId: string) {
     this.generateShapesPool(poolId);
   }
@@ -145,7 +145,7 @@ class ShapesFactory {
   }
 
   // DROP THE POOL OF SHAPES AT THE END OF GAME
-  dropShapePool(poolId: number) {
+  dropShapePool(poolId: string) {
     if (!shapesPools[poolId]) {
     }
   }

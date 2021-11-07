@@ -9,7 +9,7 @@ const useAudio = (src: any) => {
   }, [playing]);
 
   useEffect(() => {
-    audio.addEventListener("ended", () => setPlaying(true));
+    audio.addEventListener("ended", () => audio.play());
     return () => {
       audio.removeEventListener("ended", () => setPlaying(false));
     };

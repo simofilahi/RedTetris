@@ -22,6 +22,10 @@ const GameSchema = new Schema({
     type: Boolean,
     default: false,
   },
+  gravityInterval: {
+    type: Number,
+    default: 500,
+  },
 });
 
 module.exports = mongoose.model("TetrisRooms", GameSchema);
