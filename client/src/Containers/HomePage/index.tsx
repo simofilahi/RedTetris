@@ -8,10 +8,18 @@ import tetrisAudio from "../../assets/audio/tetris.mp3";
 import volumeImg from "../../assets/img/volume.png";
 import muteImg from "../../assets/img/mute.png";
 import useAudio from "../../hooks/useAudio";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faArrowLeft,
+  faArrowRight,
+  faCoffee,
+  faPause,
+  faPlay,
+} from "@fortawesome/free-solid-svg-icons";
 
 const HomePage = () => {
-  const [playerData, updatePlayerData]: any = useState({});
-  const [soundState, updateSoundState]: any = useState(true);
+  const [playerData, updatePlayerData]: any = useState({ gameStatus: "pause" });
+  const [gravityPropsindex, updateGravityPropsIndex]: any = useState(0);
   const [playing, setPlaying] = useAudio(tetrisAudio);
 
   function getKey(e: any) {
@@ -29,7 +37,7 @@ const HomePage = () => {
 
   useEffect(() => {
     try {
-      let roomTitle : string = "";
+      let roomTitle: string = "";
       let playerName: string = "";
       let multiplayer: boolean = false;
 
@@ -142,43 +150,45 @@ const HomePage = () => {
   };
 
   const GameMap = () => {
-    if (!playerData?.playerLand){
-      return (<div className="flex justify-center items-center border-white border-2" style={{width: "30%"}}>
-        <StartCmp />
-      </div>);
-    }else 
-      {
-        return (
-          <div className=" grid grid-cols-10 border-white border-2 " style={{width: "30%"}}>
-            {playerData?.playerLand?.map((row: any) => {
-              return row.map((col: any, index: number) => {
-                if (col.value === "#") {
-                  return (
-                    <div key={index} >
-                      <img
-                        src="https://img.icons8.com/ios-filled/50/000000/brick-wall.png"
-                        style={{
-                          height: "100%",
-                          width: "100%",
-                          backgroundColor: "#FFFFFF",
-                        }}
-                      />
-                    </div>
-                  );
-                }
-                return (
-                  <div
-                    key={index}
-                    style={{ backgroundColor: col.color }}
-                  ></div>
-                );
-              });
-            })}
-          </div>
+    if (!playerData?.playerLand) {
+      return (
+        <div
+          className="flex justify-center items-center border-white border-2"
+          style={{ width: "30%" }}
+        >
+          <StartCmp />
+        </div>
       );
-
-      }
-    
+    } else {
+      return (
+        <div
+          className=" grid grid-cols-10 border-white border-2 "
+          style={{ width: "30%" }}
+        >
+          {playerData?.playerLand?.map((row: any) => {
+            return row.map((col: any, index: number) => {
+              if (col.value === "#") {
+                return (
+                  <div key={index}>
+                    <img
+                      src="https://img.icons8.com/ios-filled/50/000000/brick-wall.png"
+                      style={{
+                        height: "100%",
+                        width: "100%",
+                        backgroundColor: "#FFFFFF",
+                      }}
+                    />
+                  </div>
+                );
+              }
+              return (
+                <div key={index} style={{ backgroundColor: col.color }}></div>
+              );
+            });
+          })}
+        </div>
+      );
+    }
   };
 
   const SpectrumMapCmp = (SpectrumMap: any) => {
@@ -199,18 +209,24 @@ const HomePage = () => {
   };
 
   const OpponentSpecturmMap = () => {
-      return (
-        <div className=" border-white border-2 flex items-center flex-col " style={{width: "20%"}}>
-          <div className="flex flex-col">
-            <div>{playerData.opponentSpecturmMap && playerData.opponentSpecturmMap["playerName"]}</div>
-            {playerData.opponentSpecturmMap && SpectrumMapCmp(playerData.opponentSpecturmMap["spectrum"])}
-            
+    return (
+      <div
+        className=" border-white border-2 flex items-center flex-col "
+        style={{ width: "20%" }}
+      >
+        <div className="flex flex-col">
+          <div>
+            {playerData.opponentSpecturmMap &&
+              playerData.opponentSpecturmMap["playerName"]}
           </div>
-          <SoundControl />
-          <GravityCmp />
-          <PauseAndStartCmp />
+          {playerData.opponentSpecturmMap &&
+            SpectrumMapCmp(playerData.opponentSpecturmMap["spectrum"])}
         </div>
-      );
+        <SoundControl />
+        <GravityCmp />
+        <PauseAndStartCmp />
+      </div>
+    );
   };
 
   const PlayerNextShape = () => {
@@ -224,11 +240,12 @@ const HomePage = () => {
             className={`grid grid-cols-${playerData?.playerNextShape?.pieces[0].length} p-10 `}
           >
             {playerData?.playerNextShape?.pieces?.map((row: any) => {
+              console.log({ row });
               return row.map((col: any, index: any) => {
                 return (
                   <div
                     key={index}
-                    className=""
+                    className="p-5"
                     style={{ backgroundColor: col.color }}
                   ></div>
                 );
@@ -266,13 +283,37 @@ const HomePage = () => {
     );
   };
 
+  const gravityProps = ["NORMAL", "MEDIUM", "HARD"];
+
   const GravityCmp = () => {
     return (
       <div className="h-24 w-4/5  flex flex-col py-5">
-        <div className="flex-1 w-full border-white border-2 flex justify-center items-center bg-white">
-          <div className="text-black border-2 border-black cursor-pointer">&gt;</div>
-          <div className="text-black px-5 border-2 border-black">Normal</div>
-          <div className="text-black border-black border-2 cursor-pointer">&gt;</div>
+        <div className="flex-1 w-full border-white border-2 flex justify-center  items-center bg-white">
+          <div className="text-black border-2 border-black cursor-pointer px-2">
+            <FontAwesomeIcon
+              icon={faArrowLeft}
+              onClick={() => {
+                updateGravityPropsIndex((prevIndex: number) => {
+                  if (prevIndex === 0) return prevIndex;
+                  return prevIndex - 1;
+                });
+              }}
+            />
+          </div>
+          <div className="text-black px-2 border-t-2 border-b-2 border-black">
+            {gravityProps[gravityPropsindex]}
+          </div>
+          <div className="text-black border-black border-2 cursor-pointer px-2">
+            <FontAwesomeIcon
+              icon={faArrowRight}
+              onClick={() => {
+                updateGravityPropsIndex((prevIndex: number) => {
+                  if (prevIndex === 2) return prevIndex;
+                  return prevIndex + 1;
+                });
+              }}
+            />
+          </div>
         </div>
       </div>
     );
@@ -281,11 +322,18 @@ const HomePage = () => {
   const PauseAndStartCmp = () => {
     return (
       <div className="h-24 w-4/5  flex flex-col py-5 ">
-      <div className="flex-1 w-full border-white border-2 flex justify-between items-center bg-white">
-        <div className="text-black flex pl-5">* Pause *</div>
-        <div className="text-black flex pr-5 cursor-pointer">| |</div>
+        <div className="flex-1 w-full border-white border-2 flex justify-between items-center bg-white">
+          <div className="text-black flex pl-5">
+            {playerData?.gameStatus === "pause" ? "* PAUSE *" : "* START *"}
+          </div>
+          <div className="text-black flex pr-5 cursor-pointer">
+            <FontAwesomeIcon
+              icon={playerData.gameStatus === "pause" ? faPause : faPlay}
+              color="black"
+            />
+          </div>
+        </div>
       </div>
-    </div>
     );
   };
 
@@ -307,7 +355,7 @@ const HomePage = () => {
 
   const HelperBoard = () => {
     return (
-      <div className="border-white border-2" style={{width: "20%"}}>
+      <div className="border-white border-2" style={{ width: "20%" }}>
         <div className="flex flex-col justify-center items-center">
           <PlayerNextShape />
           <PlayerScore />
@@ -345,35 +393,17 @@ const HomePage = () => {
     );
   };
 
-  // const GameSound = () => {
-  //   if (
-  //     playerData?.playerLand?.length > 0 &&
-  //     !playerData?.winner &&
-  //     !playerData?.loser
-  //   ) {
-  //     return (
-  //       <div className="bg-red-400 h-24 w-full">
-  //         {soundState ? (
-  //           <audio autoPlay loop >
-  //             <source src={tetrisAudio} type="audio/mp3" />
-  //           </audio>
-  //         ) : (
-  //           <></>
-  //         )}
-  //       </div>
-  //     );
-  //   }
-  //   return <></>;
-  // };
-
   const GameComponents = () => {
-      return (
-        <div className="flex justify-center " style={{height: "95%", width: "80%"}}>
-          {HelperBoard()}
-          {GameMap()} 
-          {OpponentSpecturmMap()}
-        </div>
-      );
+    return (
+      <div
+        className="flex justify-center "
+        style={{ height: "95%", width: "80%" }}
+      >
+        {HelperBoard()}
+        {GameMap()}
+        {OpponentSpecturmMap()}
+      </div>
+    );
   };
 
   const StartCmp = () => {
