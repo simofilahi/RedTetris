@@ -162,9 +162,11 @@ class ShapesFactory implements shapeFactoryInt {
   };
 
   // GET SHAPES POOL BY POOL ID
-
   getShapesPool = (poolId: string): Array<Array<ShapeInterface>> | null => {
+    // SHAPES POOL IF NOT EXIST RETURN NULL
     if (!shapesPools[poolId]) return null;
+
+    // IN CASE SHAPES POOL EXIST RETURN ITS CONTENT
     return JSON.parse(JSON.stringify(shapesPools[poolId]));
   };
 }
