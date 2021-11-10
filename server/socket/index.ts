@@ -235,7 +235,14 @@ async function joinToGame(
     socket.join(roomId);
 
     // SHARE THE DATA WITH THE CLIENT BY A CALLBACK
-    cb(false, { roomTitle, playerName, roomId, playerRole, gravityInterval });
+    cb(false, {
+      roomTitle,
+      playerName,
+      roomId,
+      playerRole,
+      gravityInterval,
+      multiplayer,
+    });
   } catch (e) {
     console.log({ e });
   }
@@ -277,8 +284,10 @@ async function StartGame(socket: any, io: any) {
     }: userData = socket.data.userData;
 
     const { player } = socket.data.gameData;
-    if (gameStatus === "stopped") continue;
-    await delay(gravityInterval || 500);
+    // console.log({ gravityInterval, gameStatus });
+
+    if (gameStatus === "pause") break;
+    await delay(gravityInterval || 1000);
 
     // CHECK IF CURRENT PLAYER LOSES
     if (checkGameOver(socket, { player, roomId })) {
@@ -420,6 +429,25 @@ function rotate(socket: any) {
   }
 }
 
+// EDIT GRAVITY DURATION
+function garvitySetting(socket: any, duration: number) {
+  const { multiplayer } = socket.data.userData;
+
+  // VERIFY FOR THE GAME IS NOT A MULTIPLAYER, THEN UPDATE THE GRAVITY INTERVAL
+  if (!multiplayer) socket.data.userData.gravityInterval = duration;
+}
+
+// PAUSE AND RESUME THE GAME
+function resumeOrPauseTheGame(socket: any, io: any, gameStatus: string) {
+  const { multiplayer } = socket.data.userData;
+
+  console.log({ gameStatus });
+  // VERIFY FOR THE GAME IS NOT A MULTIPLAYER, THEN PAUSE OR RESUME THE GAME
+  if (!multiplayer) socket.data.userData.gameStatus = gameStatus;
+
+  if (gameStatus === "resume") StartGame(socket, io);
+}
+
 // HANDLING INSTANT DROP OF CURRENT SHPE
 function instantDrop(socket: any) {
   const { playerName, roomId }: userData = socket.data.userData;
@@ -457,7 +485,7 @@ module.exports = (io: any) => {
       // JOIN THE GAME
       socket.on(
         "join",
-        async ({ roomTitle, playerName, multiplayer }: any, cb: any) => {
+        ({ roomTitle, playerName, multiplayer }: any, cb: any) => {
           joinToGame(socket, { roomTitle, playerName, multiplayer }, cb);
         }
       );
@@ -505,6 +533,23 @@ module.exports = (io: any) => {
       // IF SOCKET CLIENT DISCOONECTED
       socket.on("disconnect", () => {
         dropGameDoc(socket);
+      });
+
+      // EDIT GRAVITY DURATION
+      socket.on("gravitiy-setting", (duration: number) => {
+        console.log("gravity settings");
+        garvitySetting(socket, duration);
+      });
+
+      // PAUSE OR RESUME THE GAME
+      socket.on("game-status", (gameStatus: string) => {
+        console.log("game status ");
+        console.log({ gameStatus });
+        resumeOrPauseTheGame(socket, io, gameStatus);
+      });
+
+      socket.on("test", () => {
+        console.log("TEST");
       });
     } catch (error) {
       console.log({ error });

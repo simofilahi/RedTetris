@@ -24,7 +24,7 @@ const GameSchema = new Schema({
   },
   gravityInterval: {
     type: Number,
-    default: 500,
+    default: 800,
   },
 });
 
