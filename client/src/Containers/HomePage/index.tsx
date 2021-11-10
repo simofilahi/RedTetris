@@ -19,7 +19,7 @@ import {
 
 const HomePage = () => {
   const [playerData, updatePlayerData]: any = useState({
-    gameStatus: "pause",
+    gameStatus: "resume",
     gravityPropsIndex: 0,
   });
   const [playing, setPlaying] = useAudio(tetrisAudio);
@@ -224,9 +224,9 @@ const HomePage = () => {
           {playerData.opponentSpecturmMap &&
             SpectrumMapCmp(playerData.opponentSpecturmMap["spectrum"])}
         </div>
-        {/* <SoundControl />
+        <SoundControl />
         <GravityCmp />
-        <PauseAndStartCmp /> */}
+        <PauseAndStartCmp />
       </div>
     );
   };
@@ -242,7 +242,6 @@ const HomePage = () => {
             className={`grid grid-cols-${playerData?.playerNextShape?.pieces[0].length} p-10 `}
           >
             {playerData?.playerNextShape?.pieces?.map((row: any) => {
-              // console.log({ row });
               return row.map((col: any, index: any) => {
                 return (
                   <div
@@ -297,7 +296,8 @@ const HomePage = () => {
         <div className="flex-1 w-full border-white border-2 flex justify-center  items-center bg-white">
           <div
             className="text-black border-2 border-black cursor-pointer px-2"
-            onClick={() => {
+            onClick={(e) => {
+              e.preventDefault();
               console.log("left updated");
               updatePlayerData((prevState: any) => {
                 if (prevState?.gravityPropsIndex === 0) return prevState;
@@ -323,7 +323,8 @@ const HomePage = () => {
           </div>
           <div
             className="text-black border-black border-2 cursor-pointer px-2"
-            onClick={() => {
+            onClick={(e) => {
+              e.preventDefault();
               console.log("right updated");
               updatePlayerData((prevState: any) => {
                 if (prevState?.gravityPropsIndex === 2) return prevState;
@@ -353,22 +354,24 @@ const HomePage = () => {
       <div className="h-24 w-4/5  flex flex-col py-5 ">
         <div className="flex-1 w-full border-white border-2 flex justify-between items-center bg-white">
           <div className="text-black flex pl-5">
-            {playerData?.gameStatus === "pause" ? "* PAUSE *" : "* RESUME *"}
+            {playerData?.gameStatus === "resume" ? "* PAUSE *" : "* RESUME *"}
           </div>
           <div className="text-black flex pr-5 cursor-pointer">
             <FontAwesomeIcon
-              icon={playerData.gameStatus === "pause" ? faPause : faPlay}
+              icon={playerData.gameStatus === "resume" ? faPause : faPlay}
               color="black"
-              onClick={() => {
+              onClick={(e) => {
+                e.preventDefault();
+                const gameStatus =
+                  playerData?.gameStatus === "resume" ? "pause" : "resume";
+                console.log("game status ", gameStatus);
+                socket.emit("game-status", gameStatus);
+                socket.emit("test");
                 updatePlayerData((prevState: any) => {
                   if (prevState.gameStatus === "pause")
                     return { ...prevState, gameStatus: "resume" };
                   else return { ...prevState, gameStatus: "pause" };
                 });
-                // socket.emit(
-                //   "game-status",
-                //   playerData.gameStatus === "pause" ? "resume" : "pause"
-                // );
               }}
             />
           </div>
@@ -416,14 +419,7 @@ const HomePage = () => {
         <div
           className="py-10 px-20 self-end font-medium text-2xl cursor-pointer "
           onClick={() => {
-            updatePlayerData((prevState: any) => {
-              return {
-                playerName: prevState.playerName,
-                roomId: prevState.roomId,
-                roomTitle: prevState.roomTitle,
-                playerRole: prevState.playerRole,
-              };
-            });
+            window.location.reload();
           }}
         >
           x

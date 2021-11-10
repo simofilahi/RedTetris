@@ -277,9 +277,9 @@ async function StartGame(socket: any, io: any) {
     }: userData = socket.data.userData;
 
     const { player } = socket.data.gameData;
-    console.log({ gravityInterval, gameStatus });
+    // console.log({ gravityInterval, gameStatus });
 
-    if (gameStatus === "pause") continue;
+    if (gameStatus === "pause") break;
     await delay(gravityInterval || 1000);
 
     // CHECK IF CURRENT PLAYER LOSES
@@ -431,11 +431,14 @@ function garvitySetting(socket: any, duration: number) {
 }
 
 // PAUSE AND RESUME THE GAME
-function resumeOrPauseTheGame(socket: any, gameStatus: string) {
+function resumeOrPauseTheGame(socket: any, io: any, gameStatus: string) {
   const { multiplayer } = socket.data.userData;
 
+  console.log({ gameStatus });
   // VERIFY FOR THE GAME IS NOT A MULTIPLAYER, THEN PAUSE OR RESUME THE GAME
   if (!multiplayer) socket.data.userData.gameStatus = gameStatus;
+
+  if (gameStatus === "resume") StartGame(socket, io);
 }
 
 // HANDLING INSTANT DROP OF CURRENT SHPE
@@ -527,13 +530,19 @@ module.exports = (io: any) => {
 
       // EDIT GRAVITY DURATION
       socket.on("gravitiy-setting", (duration: number) => {
+        console.log("gravity settings");
         garvitySetting(socket, duration);
       });
 
       // PAUSE OR RESUME THE GAME
       socket.on("game-status", (gameStatus: string) => {
+        console.log("game status ");
         console.log({ gameStatus });
-        resumeOrPauseTheGame(socket, gameStatus);
+        resumeOrPauseTheGame(socket, io, gameStatus);
+      });
+
+      socket.on("test", () => {
+        console.log("TEST");
       });
     } catch (error) {
       console.log({ error });
