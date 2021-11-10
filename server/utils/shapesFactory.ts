@@ -160,6 +160,13 @@ class ShapesFactory implements shapeFactoryInt {
     // GET THE SHAPE BY INDEX
     return JSON.parse(JSON.stringify(shapesPools[poolId][index]));
   };
+
+  // GET SHAPES POOL BY POOL ID
+
+  getShapesPool = (poolId: string): Array<Array<ShapeInterface>> | null => {
+    if (!shapesPools[poolId]) return null;
+    return JSON.parse(JSON.stringify(shapesPools[poolId]));
+  };
 }
 
 export default ShapesFactory;

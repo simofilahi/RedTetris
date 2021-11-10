@@ -212,21 +212,33 @@ const HomePage = () => {
 
   const OpponentSpecturmMap = () => {
     return (
+      <div className="flex flex-col">
+        <div>
+          {playerData.opponentSpecturmMap &&
+            playerData.opponentSpecturmMap["playerName"]}
+        </div>
+        {playerData.opponentSpecturmMap &&
+          SpectrumMapCmp(playerData.opponentSpecturmMap["spectrum"])}
+      </div>
+    );
+  };
+
+  const RightHelperBoard = () => {
+    console.log("multiplayer ", playerData);
+    return (
       <div
         className=" border-white border-2 flex items-center flex-col "
         style={{ width: "20%" }}
       >
-        <div className="flex flex-col">
-          <div>
-            {playerData.opponentSpecturmMap &&
-              playerData.opponentSpecturmMap["playerName"]}
-          </div>
-          {playerData.opponentSpecturmMap &&
-            SpectrumMapCmp(playerData.opponentSpecturmMap["spectrum"])}
-        </div>
-        <SoundControl />
-        <GravityCmp />
-        <PauseAndStartCmp />
+        {playerData?.multiplayer ? (
+          <OpponentSpecturmMap />
+        ) : (
+          <>
+            <SoundControl />
+            <GravityCmp />
+            <PauseAndStartCmp />
+          </>
+        )}
       </div>
     );
   };
@@ -380,11 +392,6 @@ const HomePage = () => {
     );
   };
 
-  /*
-  pause -> pause
-  resume -> resume
-  */
-
   const SoundControl = () => {
     return (
       <div className="h-24 w-4/5 flex flex-col py-5">
@@ -401,7 +408,7 @@ const HomePage = () => {
     );
   };
 
-  const HelperBoard = () => {
+  const LeftHelperBoard = () => {
     return (
       <div className="border-white border-2" style={{ width: "20%" }}>
         <div className="flex flex-col justify-center items-center">
@@ -440,9 +447,9 @@ const HomePage = () => {
         className="flex justify-center "
         style={{ height: "95%", width: "90%" }}
       >
-        {HelperBoard()}
+        {LeftHelperBoard()}
         {GameMap()}
-        {OpponentSpecturmMap()}
+        {RightHelperBoard()}
       </div>
     );
   };

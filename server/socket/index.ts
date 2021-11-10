@@ -235,7 +235,14 @@ async function joinToGame(
     socket.join(roomId);
 
     // SHARE THE DATA WITH THE CLIENT BY A CALLBACK
-    cb(false, { roomTitle, playerName, roomId, playerRole, gravityInterval });
+    cb(false, {
+      roomTitle,
+      playerName,
+      roomId,
+      playerRole,
+      gravityInterval,
+      multiplayer,
+    });
   } catch (e) {
     console.log({ e });
   }
