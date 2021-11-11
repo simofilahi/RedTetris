@@ -22,7 +22,7 @@ class Game extends ShapesFactory implements GameInt {
   spectrumMap: Array<Array<Square>>;
 
   // TETRIS SHAPE
-  shape: ShapeInterface;
+  shape: ShapeInterface | null;
 
   // COLUMN COUNT OF THE MAP
   colCount: number;
@@ -59,7 +59,7 @@ class Game extends ShapesFactory implements GameInt {
    THAT WE WILL SEND TO PLAYER AFTER THIS
    CURRENT SHAPE LANDED
   */
-  nextShape: ShapeInterface;
+  nextShape: ShapeInterface | null;
 
   constructor(shapesPoolId: string) {
     super(shapesPoolId);
@@ -482,7 +482,7 @@ class Game extends ShapesFactory implements GameInt {
   }
 
   // GET THE GAME MAP OF THE PLAYER
-  getMap(): Array<Array<ShapeInterface>> {
+  getMap(): Array<Array<Square>> {
     this.dropRows();
     return JSON.parse(JSON.stringify(this.map));
   }

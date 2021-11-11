@@ -22,7 +22,7 @@ export interface shapeFactoryInt {
   generateShapesPool(poolId: string): void;
   addMoreShapeToPool(poolId: string): void;
   dropShapePool(poolId: string): void;
-  getShape(poolId: string, index: number): ShapeInterface;
+  getShape(poolId: string, index: number): ShapeInterface | null;
 }
 
 // PLAYER CLASS
@@ -43,7 +43,7 @@ export interface GameInt {
   spectrumMap: Array<Array<Square>>;
 
   // TETRIS SHAPE
-  shape: ShapeInterface;
+  shape: ShapeInterface | null;
 
   // COLUMN COUNT OF THE MAP
   colCount: number;
@@ -80,7 +80,7 @@ export interface GameInt {
     THAT WE WILL SEND TO PLAYER AFTER THIS
     CURRENT SHAPE LANDED
    */
-  nextShape: ShapeInterface;
+  nextShape: ShapeInterface | null;
 
   // GENERATE COLOS FOR THE MAP
   colGenerator(square: Square): any;
@@ -149,5 +149,5 @@ export interface GameInt {
   getDroppedRowsCount(): number;
 
   // GET THE GAME MAP OF THE PLAYER
-  getMap(): Array<Array<ShapeInterface>>;
+  getMap(): Array<Array<Square>>;
 }

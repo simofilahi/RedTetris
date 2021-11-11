@@ -1,13 +1,16 @@
-import { Mongoose } from "mongoose";
+const mongoose = require("mongoose");
 // import connect from "../../server/config/connection";
-import ShapesFactory from "../../server/utils/shapesFactory";
+import ShapesFactory, { shapesPools } from "../../server/utils/shapesFactory";
 
 describe("Shapes Factory tests", () => {
   let shapesFactory: ShapesFactory;
   let poolId: string;
+  let inexistantPoolId: string;
 
   beforeAll(async () => {
-    poolId = new Mongoose().SchemaTypes.ObjectId.toString();
+    poolId = new mongoose.Types.ObjectId().toString();
+    inexistantPoolId = new mongoose.Types.ObjectId().toString();
+
     shapesFactory = new ShapesFactory(poolId);
   });
 
@@ -18,6 +21,18 @@ describe("Shapes Factory tests", () => {
     expect(pool).not.toBeNull();
     expect(pool).toBeInstanceOf(Array);
     expect(pool).toHaveLength(100);
+  });
+
+  it("Checks if inexistant pools are not returned", () => {
+    const pool = shapesFactory.getShapesPool(inexistantPoolId);
+
+    expect(pool).toBeNull();
+  });
+
+  it("checks if the shapes pool do not get duplicated", () => {
+    const pool = shapesFactory.generateShapesPool(poolId);
+
+    expect(pool).toBeNull();
   });
 
   it("Checks if multiple pools are created", () => {
@@ -43,5 +58,45 @@ describe("Shapes Factory tests", () => {
     expect(pool).not.toBeNull();
     expect(pool).toBeInstanceOf(Array);
     expect(pool).toHaveLength(200);
+  });
+
+  it("Checks if more shapes cannot be added to an inexistant pool", () => {
+    const ret = shapesFactory.addMoreShapeToPool(inexistantPoolId);
+
+    expect(ret).toBeNull();
+  });
+
+  it("Checks if we can get a shape from the pool", () => {
+    const shape = shapesFactory.getShape(poolId, 0);
+
+    expect(shape).toBeDefined();
+    expect(shape).not.toBeNull();
+  });
+
+  it("Checks if we can get a shape from the pool", () => {
+    const shape = shapesFactory.getShape(poolId, 101);
+
+    expect(shape).toBeDefined();
+    expect(shape).not.toBeNull();
+  });
+
+  it("Checks if we cannot get a shape from an inexistant pool", () => {
+    const shape = shapesFactory.getShape(inexistantPoolId, 0);
+
+    expect(shape).toBeNull();
+  });
+
+  it("Checks if shape pool can be dropped", () => {
+    shapesFactory.dropShapePool(poolId);
+
+    expect(shapesPools).toBeDefined();
+    expect(shapesPools[poolId]).toBeUndefined();
+  });
+
+  it("Checks if inexistant shape pool can't be dropped", () => {
+    shapesFactory.dropShapePool(inexistantPoolId);
+
+    expect(shapesPools).toBeDefined();
+    expect(shapesPools[inexistantPoolId]).toBeUndefined();
   });
 });
