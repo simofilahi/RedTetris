@@ -102,7 +102,7 @@ const shapes: any = {
   },
 };
 
-let shapesPools: any = {};
+export let shapesPools: any = {};
 
 class ShapesFactory implements shapeFactoryInt {
   constructor(poolId: string) {
@@ -147,6 +147,7 @@ class ShapesFactory implements shapeFactoryInt {
   // DROP THE POOL OF SHAPES AT THE END OF GAME
   dropShapePool(poolId: string) {
     if (!shapesPools[poolId]) {
+      delete shapesPools[poolId];
     }
   }
 

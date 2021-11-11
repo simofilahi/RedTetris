@@ -86,6 +86,7 @@ async function checkWinner(
   roomId: number | undefined,
   multiplayer: boolean | undefined
 ): Promise<boolean> {
+  console.log("");
   if (multiplayer && (await getSocketInstanceCount(io, roomId)) < 2) {
     // SEND WINNER
     socket.emit("winner");
@@ -157,7 +158,6 @@ async function joinToGame(
   cb: any
 ) {
   try {
-    console.log(multiplayer);
     if (!multiplayer) {
       roomTitle = mongoose.Types.ObjectId().toString();
       playerName = "anonymous";
@@ -166,7 +166,6 @@ async function joinToGame(
     // LOOK FOR GAME IF IT'S CREATED IN THE BACKEND
     let game = await GameModel.find({ title: roomTitle });
 
-    console.log({ game });
     // DOC VARIABLE WILL HOLD THE DATA OF THE ROOM
     let doc;
 
@@ -400,6 +399,8 @@ function AddLines(socket: any, rowsCount: number) {
 
   // CHECK IF PLAYER INSTANCE EXIST AND COUNT OF DROP LINES GREATER THAN 0
   if (rowsCount && player) {
+    console.log({ rowsCount });
+
     // ADD ROW COUNT TO THE MAP OF OTHER PLAYER
     player.addRows(rowsCount);
 
