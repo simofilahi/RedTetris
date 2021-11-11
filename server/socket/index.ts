@@ -86,8 +86,9 @@ async function checkWinner(
   roomId: number | undefined,
   multiplayer: boolean | undefined
 ): Promise<boolean> {
-  console.log("");
+  console.log("before condition", multiplayer);
   if (multiplayer && (await getSocketInstanceCount(io, roomId)) < 2) {
+    console.log("after condition");
     // SEND WINNER
     socket.emit("winner");
 
@@ -228,6 +229,7 @@ async function joinToGame(
       roomId,
       playerRole,
       gravityInterval: doc.gravityInterval,
+      multiplayer: multiplayer,
     };
 
     // ADD CURRENT SOCKET TO A ROOM
@@ -251,7 +253,6 @@ async function joinToGame(
 async function orderToStartTheGameByLeader(socket: any) {
   const { playerName, roomTitle, roomId }: userData = socket.data.userData;
 
-  console.log({ roomId });
   // LOOK FOR GAME NAME IF IT'S ALREADY CREATED IN DB
   const game = await GameModel.findOne({ _id: roomId });
 
@@ -283,7 +284,7 @@ async function StartGame(socket: any, io: any) {
     }: userData = socket.data.userData;
 
     const { player } = socket.data.gameData;
-    // console.log({ gravityInterval, gameStatus });
+    console.log({ multiplayer });
 
     if (gameStatus === "pause") break;
     await delay(gravityInterval || 1000);

@@ -146,7 +146,7 @@ class ShapesFactory implements shapeFactoryInt {
 
   // DROP THE POOL OF SHAPES AT THE END OF GAME
   dropShapePool(poolId: string) {
-    if (!shapesPools[poolId]) {
+    if (shapesPools[poolId]) {
       delete shapesPools[poolId];
     }
   }

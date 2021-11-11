@@ -12,7 +12,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faArrowLeft,
   faArrowRight,
-  faCoffee,
   faPause,
   faPlay,
 } from "@fortawesome/free-solid-svg-icons";
@@ -100,7 +99,6 @@ const HomePage = () => {
 
       socket.on("winner", () => {
         setPlaying(false);
-        console.log("WINNER");
         updatePlayerData((prevState: any) => {
           return { ...prevState, winner: true };
         });
@@ -149,10 +147,10 @@ const HomePage = () => {
   };
 
   const GameMap = () => {
-    // playerData?.playerLand?.map((item: any) => {
-    //   console.log({ item });
-    //   if (item.value === "#") console.log("counter");
-    // });
+    playerData?.playerLand?.map((item: any) => {
+      console.log({ item });
+      if (item.value === "#") console.log("counter");
+    });
     if (!playerData?.playerLand) {
       return (
         <div
@@ -171,21 +169,14 @@ const HomePage = () => {
           {playerData?.playerLand?.map((row: any) => {
             return row.map((col: any, index: number) => {
               if (col.value === "#") {
-                return (
-                  <div key={index}>
-                    <img
-                      src="https://img.icons8.com/ios-filled/50/000000/brick-wall.png"
-                      style={{
-                        height: "100%",
-                        width: "100%",
-                        backgroundColor: "#FFFFFF",
-                      }}
-                    />
-                  </div>
-                );
+                return <div key={index} className="bg-white"></div>;
               }
               return (
-                <div key={index} style={{ backgroundColor: col.color }}></div>
+                <div
+                  key={index}
+                  style={{ backgroundColor: col.color, borderWidth: "1px" }}
+                  className="border-gray-400"
+                ></div>
               );
             });
           })}
@@ -196,7 +187,7 @@ const HomePage = () => {
 
   const SpectrumMapCmp = (SpectrumMap: any) => {
     return (
-      <div className="grid grid-cols-10 border-white border-2">
+      <div className="grid grid-cols-10">
         {SpectrumMap &&
           SpectrumMap.map((row: any) => {
             return row.map((col: any, index: number) => {
@@ -213,13 +204,18 @@ const HomePage = () => {
 
   const OpponentSpecturmMap = () => {
     return (
-      <div className="flex flex-col">
-        <div>
-          {playerData.opponentSpecturmMap &&
-            playerData.opponentSpecturmMap["playerName"]}
+      <div className="h-96  w-4/5 flex flex-col py-5">
+        <div className="py-1 border-white border-2 flex ">
+          <div className="flex-1 text-center">
+            Opponent :{" "}
+            {playerData.opponentSpecturmMap &&
+              playerData.opponentSpecturmMap["playerName"]}
+          </div>
         </div>
-        {playerData.opponentSpecturmMap &&
-          SpectrumMapCmp(playerData.opponentSpecturmMap["spectrum"])}
+        <div className="flex-1 w-full border-white border-2 justify-center items-center flex">
+          {playerData.opponentSpecturmMap &&
+            SpectrumMapCmp(playerData.opponentSpecturmMap["spectrum"])}
+        </div>
       </div>
     );
   };
@@ -302,29 +298,51 @@ const HomePage = () => {
     { title: "HARD", duration: 100 },
   ];
 
+  const editGravity = (e: any, arrowIcon: string) => {
+    e.preventDefault();
+    if (arrowIcon === "left") {
+      updatePlayerData((prevState: any) => {
+        if (prevState?.gravityPropsIndex === 0) return prevState;
+        return {
+          ...prevState,
+          gravityPropsIndex: prevState.gravityPropsIndex - 1,
+        };
+      });
+
+      socket.emit(
+        "gravitiy-setting",
+        !(playerData?.gravityPropsIndex - 1 < 0)
+          ? gravityProps[playerData.gravityPropsIndex - 1].duration
+          : gravityProps[0].duration
+      );
+    } else if (arrowIcon === "right") {
+      updatePlayerData((prevState: any) => {
+        if (prevState?.gravityPropsIndex === 2) return prevState;
+
+        return {
+          ...prevState,
+          gravityPropsIndex: prevState.gravityPropsIndex + 1,
+        };
+      });
+      socket.emit(
+        "gravitiy-setting",
+        !(playerData?.gravityPropsIndex + 1 > 2)
+          ? gravityProps[playerData.gravityPropsIndex + 1].duration
+          : gravityProps[0].duration
+      );
+    }
+  };
+
   const GravityCmp = () => {
     return (
-      <div className="h-24 w-4/5  flex flex-col py-5">
+      <div className="h-32 w-4/5  flex flex-col py-5">
+        <div className="bg-white text-black flex justify-center items-center border-b-2 border-black">
+          Gravity
+        </div>
         <div className="flex-1 w-full border-white border-2 flex justify-center  items-center bg-white">
           <div
             className="text-black border-2 border-black cursor-pointer px-2"
-            onClick={(e) => {
-              e.preventDefault();
-              updatePlayerData((prevState: any) => {
-                if (prevState?.gravityPropsIndex === 0) return prevState;
-                return {
-                  ...prevState,
-                  gravityPropsIndex: prevState.gravityPropsIndex - 1,
-                };
-              });
-
-              socket.emit(
-                "gravitiy-setting",
-                !(playerData?.gravityPropsIndex - 1 < 0)
-                  ? gravityProps[playerData.gravityPropsIndex - 1].duration
-                  : gravityProps[0].duration
-              );
-            }}
+            onClick={(e) => editGravity(e, "left")}
           >
             <FontAwesomeIcon icon={faArrowLeft} />
           </div>
@@ -334,24 +352,7 @@ const HomePage = () => {
           </div>
           <div
             className="text-black border-black border-2 cursor-pointer px-2"
-            onClick={(e) => {
-              e.preventDefault();
-
-              updatePlayerData((prevState: any) => {
-                if (prevState?.gravityPropsIndex === 2) return prevState;
-
-                return {
-                  ...prevState,
-                  gravityPropsIndex: prevState.gravityPropsIndex + 1,
-                };
-              });
-              socket.emit(
-                "gravitiy-setting",
-                !(playerData?.gravityPropsIndex + 1 > 2)
-                  ? gravityProps[playerData.gravityPropsIndex + 1].duration
-                  : gravityProps[0].duration
-              );
-            }}
+            onClick={(e) => editGravity(e, "right")}
           >
             <FontAwesomeIcon icon={faArrowRight} />
           </div>
@@ -360,9 +361,25 @@ const HomePage = () => {
     );
   };
 
+  const editGameControl = (e: any) => {
+    e.preventDefault();
+    const gameStatus = playerData?.gameStatus === "resume" ? "pause" : "resume";
+    socket.emit("game-status", gameStatus);
+    if (gameStatus === "pause") setPlaying(false);
+    else setPlaying(true);
+    updatePlayerData((prevState: any) => {
+      if (prevState.gameStatus === "pause")
+        return { ...prevState, gameStatus: "resume" };
+      else return { ...prevState, gameStatus: "pause" };
+    });
+  };
+
   const PauseAndStartCmp = () => {
     return (
-      <div className="h-24 w-4/5  flex flex-col py-5 ">
+      <div className="h-32 w-4/5  flex flex-col py-5 ">
+        <div className="bg-white text-black flex justify-center items-center border-b-2 border-black">
+          Control
+        </div>
         <div className="flex-1 w-full border-white border-2 flex justify-between items-center bg-white">
           <div className="text-black flex pl-5">
             {playerData?.gameStatus === "resume" ? "* PAUSE *" : "* RESUME *"}
@@ -371,17 +388,7 @@ const HomePage = () => {
             <FontAwesomeIcon
               icon={playerData.gameStatus === "resume" ? faPause : faPlay}
               color="black"
-              onClick={(e) => {
-                e.preventDefault();
-                const gameStatus =
-                  playerData?.gameStatus === "resume" ? "pause" : "resume";
-                socket.emit("game-status", gameStatus);
-                updatePlayerData((prevState: any) => {
-                  if (prevState.gameStatus === "pause")
-                    return { ...prevState, gameStatus: "resume" };
-                  else return { ...prevState, gameStatus: "pause" };
-                });
-              }}
+              onClick={editGameControl}
             />
           </div>
         </div>
@@ -391,7 +398,10 @@ const HomePage = () => {
 
   const SoundControl = () => {
     return (
-      <div className="h-24 w-4/5 flex flex-col py-5">
+      <div className="h-32 w-4/5 flex flex-col py-5">
+        <div className="bg-white text-black flex justify-center items-center border-b-2 border-black">
+          Sound
+        </div>
         <div className="flex-1 w-full border-white border-2 flex justify-center items-center bg-white">
           <img
             src={playing === true ? volumeImg : muteImg}
