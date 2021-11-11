@@ -1,5 +1,5 @@
 import { io } from "socket.io-client";
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 const socket = io("http://localhost:1337");
 /* eslint-disable import/first */
 import winnerImg from "../../assets/img/winner.png";
@@ -25,7 +25,6 @@ const HomePage = () => {
   const [playing, setPlaying] = useAudio(tetrisAudio);
 
   function getKey(e: any) {
-    console.log(e.keyCode);
     if (e.keyCode === 39) socket.emit("right-key");
     else if (e.keyCode === 37) socket.emit("left-key");
     else if (e.keyCode === 40) {
@@ -46,11 +45,7 @@ const HomePage = () => {
       try {
         var url = window.location;
 
-        console.log({ url });
-        console.log(url.hash);
         const params = url.hash.split("#")[1].split("[");
-
-        console.log({ params });
 
         roomTitle = params[0].replace("/", "");
         playerName = params[1].replace("]", "");
@@ -80,6 +75,7 @@ const HomePage = () => {
       });
 
       socket.on("add-unusable-rows", (rowsCount) => {
+        console.log("one");
         socket.emit("add-unusable-rows", rowsCount);
       });
 
@@ -104,6 +100,7 @@ const HomePage = () => {
 
       socket.on("winner", () => {
         setPlaying(false);
+        console.log("WINNER");
         updatePlayerData((prevState: any) => {
           return { ...prevState, winner: true };
         });
@@ -152,6 +149,10 @@ const HomePage = () => {
   };
 
   const GameMap = () => {
+    // playerData?.playerLand?.map((item: any) => {
+    //   console.log({ item });
+    //   if (item.value === "#") console.log("counter");
+    // });
     if (!playerData?.playerLand) {
       return (
         <div
@@ -200,9 +201,9 @@ const HomePage = () => {
           SpectrumMap.map((row: any) => {
             return row.map((col: any, index: number) => {
               if (col.value === "*") {
-                return <div key={index} className=""></div>;
+                return <div key={index} className="p-2 bg-blue-200"></div>;
               } else {
-                return <div key={index} className=""></div>;
+                return <div key={index} className="p-2"></div>;
               }
             });
           })}
@@ -224,7 +225,6 @@ const HomePage = () => {
   };
 
   const RightHelperBoard = () => {
-    console.log("multiplayer ", playerData);
     return (
       <div
         className=" border-white border-2 flex items-center flex-col "
@@ -234,11 +234,11 @@ const HomePage = () => {
           <OpponentSpecturmMap />
         ) : (
           <>
-            <SoundControl />
             <GravityCmp />
             <PauseAndStartCmp />
           </>
         )}
+        <SoundControl />
       </div>
     );
   };
@@ -310,7 +310,6 @@ const HomePage = () => {
             className="text-black border-2 border-black cursor-pointer px-2"
             onClick={(e) => {
               e.preventDefault();
-              console.log("left updated");
               updatePlayerData((prevState: any) => {
                 if (prevState?.gravityPropsIndex === 0) return prevState;
                 return {
@@ -337,7 +336,7 @@ const HomePage = () => {
             className="text-black border-black border-2 cursor-pointer px-2"
             onClick={(e) => {
               e.preventDefault();
-              console.log("right updated");
+
               updatePlayerData((prevState: any) => {
                 if (prevState?.gravityPropsIndex === 2) return prevState;
 
@@ -376,9 +375,7 @@ const HomePage = () => {
                 e.preventDefault();
                 const gameStatus =
                   playerData?.gameStatus === "resume" ? "pause" : "resume";
-                console.log("game status ", gameStatus);
                 socket.emit("game-status", gameStatus);
-                socket.emit("test");
                 updatePlayerData((prevState: any) => {
                   if (prevState.gameStatus === "pause")
                     return { ...prevState, gameStatus: "resume" };
