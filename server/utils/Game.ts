@@ -279,6 +279,7 @@ class Game extends ShapesFactory implements GameInt {
         this.updateMap();
         return true;
       } else {
+        if (this.gameOver) return false;
         this.shape.cords.row--;
         this.setShapeLanded();
         this.addShapeToMap();

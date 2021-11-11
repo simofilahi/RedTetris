@@ -1,13 +1,13 @@
 import { io } from "socket.io-client";
 import React, { useState, useEffect } from "react";
-const socket = io("http://localhost:1337");
+
 /* eslint-disable import/first */
-
 import tetrisAudio from "../../assets/audio/tetris.mp3";
-
 import useAudio from "../../hooks/useAudio";
 import { EndGameCmp } from "./end_game";
 import GameComponents from "./game_map";
+
+const socket = io("http://localhost:1337");
 
 interface PlayerDataInt {
   playerData: any;
