@@ -2,53 +2,80 @@ import { LeftHelperBoard, RightHelperBoard } from "./game_map_helper";
 import { useContext } from "react";
 import { PlayerDataContext } from ".";
 
-const GameMap = () => {
-  const { playerData, socket } = useContext(PlayerDataContext);
-  const StartGameBtn = () => {
+// BUTTON TO START THE GAME THIS WILL APPEAR JUST FOR LEADER
+const StartGameBtn = () => {
+  const { socket } = useContext(PlayerDataContext);
+  return (
+    <div
+      className="bg-white h-12 w-52 text-black flex justify-center cursor-pointer items-center font-bold text-lg"
+      onClick={(e) => {
+        e.preventDefault();
+        socket.emit("start-order");
+      }}
+    >
+      Start Game
+    </div>
+  );
+};
+
+// MAP BODY OF THE GAME
+const MapBody = () => {
+  const { playerData } = useContext(PlayerDataContext);
+  if (!playerData?.playerLand?.length && playerData.playerRole === "leader") {
     return (
-      <div
-        className="bg-white h-12 w-52 text-black flex justify-center cursor-pointer items-center font-bold text-lg"
-        onClick={(e) => {
-          e.preventDefault();
-          socket.emit("start-order");
-        }}
-      >
-        Start Game
+      <div className="">
+        <div className="p-2">
+          Role: you are the {playerData.playerRole ? playerData.playerRole : ""}
+        </div>
+        {StartGameBtn()}
       </div>
     );
-  };
-
-  const StartCmp = () => {
-    if (!playerData?.playerLand?.length && playerData.playerRole === "leader") {
-      return (
-        <div className="">
-          <div className="p-2">
-            Role: you are the{" "}
-            {playerData.playerRole ? playerData.playerRole : ""}
-          </div>
-          {StartGameBtn()}
+  } else if (!playerData?.playerLand?.length) {
+    return (
+      <div>
+        <div className="p-2">
+          Role: you are a {playerData.playerRole ? playerData.playerRole : ""}
         </div>
-      );
-    } else if (!playerData?.playerLand?.length) {
-      return (
-        <div>
-          <div className="p-2">
-            Role: you are a {playerData.playerRole ? playerData.playerRole : ""}
-          </div>
-          <p>Waiting for the game to start ...</p>
-        </div>
-      );
-    }
-    return <></>;
-  };
+        <p>Waiting for the game to start ...</p>
+      </div>
+    );
+  }
+  return <></>;
+};
 
+// DISPLAYING THE GAME MAP
+const MapRender = () => {
+  const { playerData } = useContext(PlayerDataContext);
+  return playerData?.playerLand?.map((row: any) => {
+    return row.map((col: any, index: number) => {
+      if (col.value === "#") {
+        return <div key={index} className="bg-white"></div>;
+      }
+      return (
+        <div
+          key={index}
+          style={{ backgroundColor: col.color, borderWidth: "1px" }}
+          className="border-gray-400"
+        ></div>
+      );
+    });
+  });
+};
+
+const GameMap = () => {
+  const { playerData } = useContext(PlayerDataContext);
+
+  /* VERIFY IF THE GAME NOT STARTED YET
+   IF ITS DISPLAY EMPTY MAP INSIDE IT A BUTTON FOR 
+   THE LEADER TO START THE GAME
+  */
   if (!playerData?.playerLand) {
     return (
       <div
         className="flex justify-center items-center border-white border-2"
         style={{ width: "50%" }}
       >
-        <StartCmp />
+        <MapBody />
       </div>
     );
   } else {
@@ -57,20 +84,7 @@ const GameMap = () => {
         className=" grid grid-cols-10 border-white border-2 "
         style={{ width: "50%" }}
       >
-        {playerData?.playerLand?.map((row: any) => {
-          return row.map((col: any, index: number) => {
-            if (col.value === "#") {
-              return <div key={index} className="bg-white"></div>;
-            }
-            return (
-              <div
-                key={index}
-                style={{ backgroundColor: col.color, borderWidth: "1px" }}
-                className="border-gray-400"
-              ></div>
-            );
-          });
-        })}
+        <MapRender />
       </div>
     );
   }

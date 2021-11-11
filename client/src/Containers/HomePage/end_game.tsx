@@ -3,6 +3,7 @@ import { useContext } from "react";
 import winnerImg from "../../assets/img/winner.png";
 import loserImg from "../../assets/img/loser.png";
 
+// DISPLAY LOSER OR WINNER IMG DEPEND ON PLAYER IF HE LOSES OR WIN
 export const EndGameCmp = () => {
   const { playerData } = useContext(PlayerDataContext);
   const EndGameCard = () => {

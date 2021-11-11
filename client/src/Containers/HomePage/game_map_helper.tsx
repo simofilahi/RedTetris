@@ -11,6 +11,8 @@ import volumeImg from "../../assets/img/volume.png";
 import muteImg from "../../assets/img/mute.png";
 
 // RIGHT HELPER BOARD COMPONENTS
+
+// SPECTRUM MAP OF THE OPPONENT
 const SpectrumMapCmp = (SpectrumMap: any) => {
   return (
     <div className="grid grid-cols-10">
@@ -28,6 +30,7 @@ const SpectrumMapCmp = (SpectrumMap: any) => {
   );
 };
 
+// SPECTRUM MAP OF THE OPPONENT
 const OpponentSpecturmMap = () => {
   const { playerData } = useContext(PlayerDataContext);
   return (
@@ -47,16 +50,19 @@ const OpponentSpecturmMap = () => {
   );
 };
 
+// GRAVITY OF FALLING SHAPES
 const GravityCmp = () => {
   const { playerData, socket, updatePlayerData } =
     useContext(PlayerDataContext);
 
+  // PREDEFIND GRAVITY SPEED
   const gravityProps = [
     { title: "NORMAL", duration: 800 },
     { title: "MEDIUM", duration: 500 },
     { title: "HARD", duration: 100 },
   ];
 
+  // CHANGE THE GRAVITY SETTINGS
   const editGravity = (e: any, arrowIcon: string) => {
     e.preventDefault();
     if (arrowIcon === "left") {
@@ -119,6 +125,7 @@ const GravityCmp = () => {
   );
 };
 
+// PAUSE AND START THE GAME
 const PauseAndStartCmp = () => {
   const { playerData, setPlaying, socket, updatePlayerData } =
     useContext(PlayerDataContext);
@@ -156,6 +163,7 @@ const PauseAndStartCmp = () => {
   );
 };
 
+// SOUND SETTINGS
 const SoundControl = () => {
   const { playing, setPlaying } = useContext(PlayerDataContext);
   return (
@@ -176,6 +184,7 @@ const SoundControl = () => {
   );
 };
 
+// RIGHT BOARD COMPONENT
 export const RightHelperBoard = () => {
   const { playerData } = useContext(PlayerDataContext);
   return (
