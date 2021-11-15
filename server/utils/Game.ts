@@ -210,7 +210,7 @@ class Game extends ShapesFactory implements GameInt {
     return JSON.parse(JSON.stringify(this.nextShape));
   }
 
-  // CLEAR THE MAP EXPECEPT FOR LANDED SHAPES
+  // CLEAR THE MAP EXCEPT FOR LANDED SHAPES
   clear(): void {
     for (let mapRow: number = 0; mapRow < this.map.length; mapRow++) {
       for (let mapCol: number = 0; mapCol < this.map[mapRow].length; mapCol++) {
@@ -249,22 +249,22 @@ class Game extends ShapesFactory implements GameInt {
   }
 
   // DRAW MAP (DEBUGGING PURPOSE)
-  draw(): void {
-    console.log("--------------------------------");
-    console.log("--------------------------------");
-    console.log("");
-    console.log("--------------------------------");
-    console.log("Game map");
-    this.map.forEach((row: any) => {
-      row.forEach((item: any) => {
-        if (item.value === "0") process.stdout.write(".");
-        else process.stdout.write(item.value);
-      });
-      process.stdout.write("\n");
-    });
-    console.log("");
-    console.log("--------------------------------");
-  }
+  // draw(): void {
+  //   console.log("--------------------------------");
+  //   console.log("--------------------------------");
+  //   console.log("");
+  //   console.log("--------------------------------");
+  //   console.log("Game map");
+  //   this.map.forEach((row: any) => {
+  //     row.forEach((item: any) => {
+  //       if (item.value === "0") process.stdout.write(".");
+  //       else process.stdout.write(item.value);
+  //     });
+  //     process.stdout.write("\n");
+  //   });
+  //   console.log("");
+  //   console.log("--------------------------------");
+  // }
 
   // MOVE SHAPE DOWN
   moveDown(): boolean {
@@ -273,7 +273,7 @@ class Game extends ShapesFactory implements GameInt {
        ELSE SET THE CURRENT SHAPE AS LANDED AND ADD NEW
        SHAPE TO THE MAP
     */
-    if (!this.gameOver) {
+    if (this.shape && !this.gameOver) {
       this.shape.cords.row++;
       if (!this.collisionDetecter()) {
         this.updateMap();
@@ -299,13 +299,12 @@ class Game extends ShapesFactory implements GameInt {
     /* IF THERE ARE NO COLLISOINS
        KEEP DEINCREMENT COL AND MOVE SHAPE TO LEFT
     */
-    if (!this.gameOver) {
+    if (this.shape && !this.gameOver) {
       this.shape.cords.col--;
       if (!this.collisionDetecter()) {
         this.updateMap();
       } else {
         this.shape.cords.col++;
-        // this.draw();
       }
     }
   }
@@ -384,10 +383,12 @@ class Game extends ShapesFactory implements GameInt {
   }
 
   // ROTATION 90 DEGREE TO CURRENT SHAPE
-  rotate(): void {
+  rotate(): void | null {
     // THIS ARRAY WILL HOLD ARRAYS THAT REPRESONT ROWS OF A CURRENT SHAPE
     const matrix: Array<any> = [];
 
+    // PROTECTS THE SHAPE FROM ROTATION IF IT IS INEXISTENT
+    if (!this.shape) return null;
     // ITERATE TROUGH ROWS OF CURRENT SHAPE
     for (
       let shapeRow: number = 0;
@@ -468,7 +469,7 @@ class Game extends ShapesFactory implements GameInt {
   }
 
   // GET THE LAND SPECTURM OF THE PLAYER
-  getlandSpectrum(): Array<Array<ShapeInterface>> {
+  getlandSpectrum(): Array<Array<Square>> {
     return JSON.parse(JSON.stringify(this.spectrumMap));
   }
 

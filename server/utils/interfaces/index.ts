@@ -25,11 +25,6 @@ export interface shapeFactoryInt {
   getShape(poolId: string, index: number): ShapeInterface | null;
 }
 
-// PLAYER CLASS
-export interface playerInt {
-  keyPressEvent(key: string): void;
-}
-
 // GAME CLASS
 
 export interface GameInt {
@@ -113,7 +108,7 @@ export interface GameInt {
   setShapeLanded(): void;
 
   // DRAW MAP (DEBUGGING PURPOSE)
-  draw(): void;
+  // draw(): void;
 
   // MOVE SHAPE DOWN
   moveDown(): boolean;
@@ -131,7 +126,7 @@ export interface GameInt {
   collisionDetecter(): boolean;
 
   // ROTATION 90 DEGREE TO CURRENT SHAPE
-  rotate(): void;
+  rotate(): void | null;
 
   // SPECTRUM OF CURRENT PLAYER MAP
   landSpectrum(): void;
@@ -140,7 +135,7 @@ export interface GameInt {
   gameOverStatus(): boolean;
 
   // GET THE LAND SPECTURM OF THE PLAYER
-  getlandSpectrum(): Array<Array<ShapeInterface>>;
+  getlandSpectrum(): Array<Array<Square>>;
 
   // GET THE SCORE OF THE PLAYER
   getScore(): number;
