@@ -1,16 +1,13 @@
 const mongoose = require("mongoose");
-
+const path = require("path");
 const dotenv = require("dotenv");
 
 // LOAD ENV VARS
-dotenv.config({ path: ".env" });
-
-// DB URI
-const DB_URI = process.env.DB_URI;
-console.log({ DB_URI });
+dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 
 // DB CONNECTION
 const connect = () => {
+  const DB_URI = process.env.DB_URI;
   mongoose
     .connect(DB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
     .then((res) => {

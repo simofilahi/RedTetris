@@ -1,12 +1,10 @@
 import express, { Request, Response, Application } from "express";
-import { Model } from "mongoose";
 const bodyParser = require("body-parser");
 const cors = require("cors");
-
 const path = require("path");
-const GameModel = require("./models/game");
-const mongoose = require("mongoose");
 const dotenv = require("dotenv");
+// DB CONNECTION
+const connect = require("./config/connection");
 
 // LOAD ENV VARS
 dotenv.config({ path: ".env" });
@@ -14,8 +12,7 @@ dotenv.config({ path: ".env" });
 // INIT THE APP
 const app: Application = express();
 
-// DB CONNECTION
-require("./config/connection");
+connect();
 
 const server = require("http").createServer(app);
 

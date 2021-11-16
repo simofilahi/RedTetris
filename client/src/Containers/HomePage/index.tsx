@@ -39,7 +39,7 @@ const HomePage = () => {
     else if (e.keyCode === 40) {
       socket.emit("down-key");
     } else if (e.keyCode === 32) {
-      socket.emit("upper-key");
+      socket.emit("space-key");
     } else if (e.keyCode === 38) {
       socket.emit("rotate");
     }

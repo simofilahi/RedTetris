@@ -1,12 +1,12 @@
+import Game from "../../server/src/utils/Game";
+import { Square } from "../../server/src/utils/interfaces";
 const mongoose = require("mongoose");
-import Game from "../../server/utils/Game";
-import { ShapeInterface, Square } from "../../server/utils/interfaces";
 
 let game: Game;
 let gameMap: Array<Array<Square>> = [[]];
 let POOL_ID: string = "";
 
-const colors = [
+export const colors = [
   "#32C7EF",
   "#F7D20C",
   "#AD4D9B",
@@ -16,8 +16,8 @@ const colors = [
   "#EF7920",
   "",
 ];
-const values = ["0", "1", "2", "3", "4", "5", "6", "7", ".", "#"];
-const statuses = ["active", "landed", ""];
+export const values = ["0", "1", "2", "3", "4", "5", "6", "7", ".", "#"];
+export const statuses = ["active", "landed", ""];
 
 describe("Game class tests", () => {
   beforeEach(() => {
