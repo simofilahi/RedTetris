@@ -1,156 +1,20 @@
-import { clear } from "console";
 import Player from "../utils/Player";
-import ShapesFactory from "../utils/shapesFactory";
+import { userData } from "./interfaces";
+import {
+  checkGameOver,
+  checkWinner,
+  dropGameDoc,
+  droppedRows,
+  findPlayer,
+  getDroppedLineCount,
+  getMap,
+  getNextShape,
+  getPlayerRole,
+  getScore,
+  getSpectrumMap,
+} from "./utils";
 const GameModel = require("../models/game");
 const mongoose = require("mongoose");
-
-// INTERFACES
-interface userData {
-  roomId?: number;
-  roomTitle?: string;
-  playerName?: string;
-  player?: any;
-  multiplayer?: boolean;
-  gravityInterval?: number;
-  gameStatus?: string;
-}
-// UTILS
-
-// GET THE SOCKET INSTANCES COUNT JOINED INTO THE SAME ROOMID
-async function getSocketInstanceCount(
-  io: any,
-  roomId: number | undefined
-): Promise<number> {
-  const sockets = await io.in(roomId).fetchSockets();
-  const subscribersCount = sockets.length;
-  return subscribersCount;
-}
-
-// GET THE SPECTRUM OF CURRENT PLAYER AND SEND IT TO OTHER PLAYERS
-function getSpectrumMap(
-  socket: any,
-  { roomId, player, playerName }: userData
-): void {
-  socket.to(roomId).emit("spectrum-map", {
-    spectrum: player.getlandSpectrum(),
-    playerName: playerName,
-  });
-}
-
-// CHECK THE GAME IF OVER FOR CURRENT SOCKET
-function checkGameOver(socket: any, { player, roomId }: userData): boolean {
-  if (player.gameOver) {
-    // SEND TO THE CURRENT PLAYER GAME OVER
-    socket.emit("gameOver", true);
-
-    // LEAVE THIS PLAYER FROM GAME ROOM
-    socket.leave(roomId);
-
-    // RESET THE GAME DATA FOR THAT CURRENT PLAYER TO NULL
-    socket.data.gameData.player = null;
-
-    return true;
-  }
-  return false;
-}
-
-// CHECK IF SOME ROWS OF CURRENT PLAYER'S DROPPED
-function droppedRows(socket: any, { player, roomId }: userData): void {
-  if (player.removedLinesCount) {
-    // SEND THE COUNT OF FULL ROWS TO OTHER PLAYERS THAT JOINED IN THE SAME ROOM
-    socket.to(roomId).emit("add-unusable-rows", player.removedLinesCount);
-    // SET FULL ROWS COUNT TO 0;
-    player.removedLinesCount = 0;
-  }
-}
-
-// FIND A PLAYER IF IS ALREADY IN GAME DOC
-function findPlayer(players: any, playerName: any): boolean {
-  return players.some((item: any) => {
-    return item.name === playerName;
-  });
-}
-
-// GET PLAYER ROLE FROM DB DOC
-function getPlayerRole(players: any, playerName: any): string {
-  for (let i = 0; i < players.length; i++) {
-    if (players[i].name === playerName) return players[i].role;
-  }
-  return "follower";
-}
-
-// CHECK THE WINNER
-async function checkWinner(
-  io: any,
-  socket: any,
-  roomId: number | undefined,
-  multiplayer: boolean | undefined
-): Promise<boolean> {
-  console.log("before condition", multiplayer);
-  if (multiplayer && (await getSocketInstanceCount(io, roomId)) < 2) {
-    console.log("after condition");
-    // SEND WINNER
-    socket.emit("winner");
-
-    // CURRENT PLAYER LEAVE THE ROOM
-    socket.leave(roomId);
-
-    // RESET THE GAME DATA FOR THAT CURRENT PLAYER TO NULL
-    socket.data.gameData.player = null;
-
-    // DROP THE GAME DOC
-    dropGameDocByWinner(socket);
-
-    return true;
-  }
-  return false;
-}
-
-// GET THE MAP OF CURRENT OF CURRENT PLAYER
-async function getMap(socket: any, player: any) {
-  socket.emit("map", player.getMap());
-}
-
-// GET THE SCORE OF CURRENT PLAYER
-async function getScore(socket: any, player: any) {
-  socket.emit("score", player.getScore());
-}
-
-// GET DROPPED LINE COUNT OF CURRENT PLAYER
-async function getDroppedLineCount(socket: any, player: any) {
-  socket.emit("dropped-lines", player.getDroppedRowsCount());
-}
-
-// GET THE NEXT TETRIS SHAPE OF CURRENT PLAYER
-async function getNextShape(socket: any, player: any) {
-  socket.emit("next-shape", player.getNextShape());
-}
-
-// DROP THE GAME DOC AT THE END
-async function dropGameDoc(socket: any) {
-  if (socket.data.userData) {
-    const { roomId } = socket.data.userData;
-
-    // FIND THE GAME ROOM DOC
-    const game = await GameModel.find({ roomId });
-
-    // VERIFY IF THE GAME IS NOT CONCERN MULTIPLAYERS
-    if (!game[0].multiplayer) {
-      // DELETE THE GAME ROOM
-      await GameModel.deleteOne({ roomId });
-    }
-  }
-}
-
-// DROP THE GAME DOC AT THE END BY WINNER
-async function dropGameDocByWinner(socket: any) {
-  try {
-    const { roomId } = socket.data.userData;
-
-    await GameModel.deleteOne({ roomId });
-  } catch {}
-}
-//
 
 // JOINING THE GAME ROOM
 async function joinToGame(
@@ -487,7 +351,7 @@ module.exports = (io: any) => {
       // JOIN THE GAME
       socket.on(
         "join",
-        ({ roomTitle, playerName, multiplayer }: any, cb: any) => {
+        ({ roomTitle, playerName, multiplayer }: userData, cb: Function) => {
           joinToGame(socket, { roomTitle, playerName, multiplayer }, cb);
         }
       );
@@ -548,10 +412,6 @@ module.exports = (io: any) => {
         console.log("game status ");
         console.log({ gameStatus });
         resumeOrPauseTheGame(socket, io, gameStatus);
-      });
-
-      socket.on("test", () => {
-        console.log("TEST");
       });
     } catch (error) {
       console.log({ error });

@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-import Player from "../../server/utils/Player";
+import Player from "../../server/src/utils/Player";
 
 describe("Tests player class", () => {
   const POOL_ID = new mongoose.Types.ObjectId().toString();

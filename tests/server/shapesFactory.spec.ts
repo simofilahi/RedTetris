@@ -1,6 +1,8 @@
 const mongoose = require("mongoose");
 // import connect from "../../server/config/connection";
-import ShapesFactory, { shapesPools } from "../../server/utils/shapesFactory";
+import ShapesFactory, {
+  shapesPools,
+} from "../../server/src/utils/shapesFactory";
 
 describe("Shapes Factory tests", () => {
   let shapesFactory: ShapesFactory;

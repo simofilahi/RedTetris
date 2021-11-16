@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
-import Game from "../../server/utils/Game";
-import { ShapeInterface, Square } from "../../server/utils/interfaces";
+import Game from "../../server/src/utils/Game";
+import { ShapeInterface, Square } from "../../server/src/utils/interfaces";
 
 let game: Game;
 let gameMap: Array<Array<Square>> = [[]];

@@ -6,6 +6,7 @@ import tetrisAudio from "../../assets/audio/tetris.mp3";
 import useAudio from "../../hooks/useAudio";
 import { EndGameCmp } from "./end_game";
 import GameComponents from "./game_map";
+import { userData } from "../../interfaces";
 
 const socket = io("http://localhost:1337");
 
@@ -73,7 +74,7 @@ const HomePage = () => {
       socket.emit(
         "join",
         { roomTitle, playerName, multiplayer },
-        (err: any, data: any) => {
+        (err: Boolean, data: userData) => {
           updatePlayerData((prevState: any) => {
             return { ...prevState, ...data };
           });
