@@ -76,9 +76,7 @@ export async function checkWinner(
   roomId: number | undefined,
   multiplayer: boolean | undefined
 ): Promise<boolean> {
-  console.log("before condition", multiplayer);
   if (multiplayer && (await getSocketInstanceCount(io, roomId)) < 2) {
-    console.log("after condition");
     // SEND WINNER
     socket.emit("winner");
 

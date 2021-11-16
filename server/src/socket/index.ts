@@ -214,7 +214,6 @@ function moveToRight(socket: any) {
     // MOVE TETRIS SHAPE OF CURRENT PLAYER'S MAP TO THE RIGHT
     player.moveToRight();
 
-    console.log("I'M HERE MOVE TO THE RIGHT");
     // GET THE UPDATED MAP AND SEND IT BACK TO THE CURRENT PLAYER
     socket.emit("map", player.getMap());
   }
@@ -305,7 +304,6 @@ function rotate(socket: any) {
 function garvitySetting(socket: any, duration: number) {
   const { multiplayer } = socket.data.userData;
 
-  console.log({ multiplayer, duration });
   // VERIFY FOR THE GAME IS NOT A MULTIPLAYER, THEN UPDATE THE GRAVITY INTERVAL
   if (!multiplayer) socket.data.userData.gravityInterval = duration;
 }
@@ -314,10 +312,10 @@ function garvitySetting(socket: any, duration: number) {
 function resumeOrPauseTheGame(socket: any, io: any, gameStatus: string) {
   const { multiplayer } = socket.data.userData;
 
-  console.log({ gameStatus });
   // VERIFY FOR THE GAME IS NOT A MULTIPLAYER, THEN PAUSE OR RESUME THE GAME
   if (!multiplayer) socket.data.userData.gameStatus = gameStatus;
 
+  // console.log("STATUS ", socket.data.userData.gameStatus);
   if (gameStatus === "resume") StartGame(socket, io);
 }
 
@@ -405,20 +403,16 @@ function socketListener(io: any) {
 
       // IF SOCKET CLIENT DISCOONECTED
       socket.on("disconnect", () => {
-        console.log("Disconnect");
         dropGameDoc(socket);
       });
 
       // EDIT GRAVITY DURATION
       socket.on("gravitiy-setting", (duration: number) => {
-        console.log("gravity settings");
         garvitySetting(socket, duration);
       });
 
       // PAUSE OR RESUME THE GAME
       socket.on("game-status", (gameStatus: string) => {
-        console.log("game status ");
-        console.log({ gameStatus });
         resumeOrPauseTheGame(socket, io, gameStatus);
       });
     } catch (error) {
