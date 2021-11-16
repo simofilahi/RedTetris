@@ -22,12 +22,7 @@ export interface shapeFactoryInt {
   generateShapesPool(poolId: string): void;
   addMoreShapeToPool(poolId: string): void;
   dropShapePool(poolId: string): void;
-  getShape(poolId: string, index: number): ShapeInterface;
-}
-
-// PLAYER CLASS
-export interface playerInt {
-  keyPressEvent(key: string): void;
+  getShape(poolId: string, index: number): ShapeInterface | null;
 }
 
 // GAME CLASS
@@ -43,7 +38,7 @@ export interface GameInt {
   spectrumMap: Array<Array<Square>>;
 
   // TETRIS SHAPE
-  shape: ShapeInterface;
+  shape: ShapeInterface | null;
 
   // COLUMN COUNT OF THE MAP
   colCount: number;
@@ -80,7 +75,7 @@ export interface GameInt {
     THAT WE WILL SEND TO PLAYER AFTER THIS
     CURRENT SHAPE LANDED
    */
-  nextShape: ShapeInterface;
+  nextShape: ShapeInterface | null;
 
   // GENERATE COLOS FOR THE MAP
   colGenerator(square: Square): any;
@@ -113,7 +108,7 @@ export interface GameInt {
   setShapeLanded(): void;
 
   // DRAW MAP (DEBUGGING PURPOSE)
-  draw(): void;
+  // draw(): void;
 
   // MOVE SHAPE DOWN
   moveDown(): boolean;
@@ -131,7 +126,7 @@ export interface GameInt {
   collisionDetecter(): boolean;
 
   // ROTATION 90 DEGREE TO CURRENT SHAPE
-  rotate(): void;
+  rotate(): void | null;
 
   // SPECTRUM OF CURRENT PLAYER MAP
   landSpectrum(): void;
@@ -140,7 +135,7 @@ export interface GameInt {
   gameOverStatus(): boolean;
 
   // GET THE LAND SPECTURM OF THE PLAYER
-  getlandSpectrum(): Array<Array<ShapeInterface>>;
+  getlandSpectrum(): Array<Array<Square>>;
 
   // GET THE SCORE OF THE PLAYER
   getScore(): number;
@@ -149,5 +144,5 @@ export interface GameInt {
   getDroppedRowsCount(): number;
 
   // GET THE GAME MAP OF THE PLAYER
-  getMap(): Array<Array<ShapeInterface>>;
+  getMap(): Array<Array<Square>>;
 }

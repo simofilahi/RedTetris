@@ -110,7 +110,7 @@ class ShapesFactory implements shapeFactoryInt {
   }
 
   // GENERATE POOL OF SHAPES FOR A SPECIFIC GAME BY POOLID
-  generateShapesPool(poolId: string): void {
+  generateShapesPool(poolId: string): void | null {
     // VERIFY POOL  ALREADY EXIST
     if (!shapesPools[poolId]) {
       // CREATE NEW ARRAY FOR THE POOLID PROPERTY
@@ -127,11 +127,11 @@ class ShapesFactory implements shapeFactoryInt {
         // PUSH RANDOM SHAPE TO THE ARRAY
         shapesPools[poolId].push(JSON.parse(JSON.stringify(shape)));
       }
-    }
+    } else return null;
   }
 
   // IN CASE IF A POOL OF SHAPES CONSUMED, WE ADD MORE 100 SHAPES TO IT
-  addMoreShapeToPool(poolId: string): void {
+  addMoreShapeToPool(poolId: string): void | null {
     if (shapesPools[poolId]) {
       const keys = Object.keys(shapes);
       for (let index: number = 0; index < 100; index++) {
@@ -141,25 +141,26 @@ class ShapesFactory implements shapeFactoryInt {
         // ADD SHAPE TO THE POOL ARRAY
         shapesPools[poolId].push(JSON.parse(JSON.stringify(shape)));
       }
-    }
+    } else return null;
   }
 
   // DROP THE POOL OF SHAPES AT THE END OF GAME
-  dropShapePool(poolId: string) {
+  dropShapePool(poolId: string): void | null {
     if (shapesPools[poolId]) {
       delete shapesPools[poolId];
-    }
+    } else return null;
   }
 
   // GET A SHAPE FROM A SPECIFIC POOL BY INDEX
-  getShape = (poolId: string, index: number): ShapeInterface => {
+  getShape = (poolId: string, index: number): ShapeInterface | null => {
     /* VERIFY IF THE POOL OF SHAPES IS EMPTY, 
       IF IT'S CALL FUNCTION TO ADD MORE SHAPES TO IT
     */
-    if (index > shapesPools[poolId].length) this.addMoreShapeToPool(poolId);
+    if (index > shapesPools[poolId]?.length) this.addMoreShapeToPool(poolId);
 
-    // GET THE SHAPE BY INDEX
-    return JSON.parse(JSON.stringify(shapesPools[poolId][index]));
+    if (shapesPools[poolId] && shapesPools[poolId][index])
+      return JSON.parse(JSON.stringify(shapesPools[poolId][index]));
+    return null;
   };
 
   // GET SHAPES POOL BY POOL ID
