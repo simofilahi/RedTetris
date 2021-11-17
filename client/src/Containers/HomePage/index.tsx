@@ -6,29 +6,31 @@ import tetrisAudio from "../../assets/audio/tetris.mp3";
 import useAudio from "../../hooks/useAudio";
 import { EndGameCmp } from "./end_game";
 import GameComponents from "./game_map";
+import {
+  ContextInt,
+  opponentSpecturmMapInt,
+  PlayerDataInt,
+  ShapeInterface,
+  SquareInt,
+} from "./interfaces";
 
-const socket = io("http://localhost:1337");
+const socket = io("http://10.11.3.11:1337");
 
-interface PlayerDataInt {
-  playerData: any;
-  socket: any;
-  setPlaying: any;
-  playing: any;
-}
-
-export const PlayerDataContext: any = React.createContext({
+export const PlayerDataContext: any = React.createContext<ContextInt>({
   playerData: {},
-  socket: {},
-  setPlaying: {},
-  playing: {},
+  updatePlayerData: () => {},
+  setPlaying: () => {},
+  playing: false,
+  socket: socket,
 });
 
 const HomePage = () => {
   // PLAYER DATA
-  const [playerData, updatePlayerData]: any = useState({
+  const [playerData, updatePlayerData] = useState<PlayerDataInt>({
     gameStatus: "resume",
     gravityPropsIndex: 0,
   });
+
   // SOUND PLAYER SETTING
   const [playing, setPlaying] = useAudio(tetrisAudio);
 
@@ -73,8 +75,8 @@ const HomePage = () => {
       socket.emit(
         "join",
         { roomTitle, playerName, multiplayer },
-        (err: any, data: any) => {
-          updatePlayerData((prevState: any) => {
+        (err: boolean, data: PlayerDataInt) => {
+          updatePlayerData((prevState: PlayerDataInt) => {
             return { ...prevState, ...data };
           });
         }
@@ -92,29 +94,32 @@ const HomePage = () => {
       });
 
       // THIS EVENT WILL TRIGGER IN CASE ANOTHER PLAYER DROP SOME ROWS IN HIS MAP
-      socket.on("add-unusable-rows", (rowsCount) => {
+      socket.on("add-unusable-rows", (rowsCount: number) => {
         console.log("one");
         socket.emit("add-unusable-rows", rowsCount);
       });
 
       // THIS EVENT WILL TRIGGER TO GET THE PLAYER MAP
-      socket.on("map", (data) => {
-        updatePlayerData((prevState: any) => {
+      socket.on("map", (data: Array<Array<SquareInt>>) => {
+        updatePlayerData((prevState: PlayerDataInt) => {
           return { ...prevState, playerLand: data };
         });
       });
 
       // THIS EVENT WILL TRIGGER TO GET THE SPECTRUM MAP OF THE OPPONENT
-      socket.on("spectrum-map", (icomingSpectrumData) => {
-        updatePlayerData((prevState: any) => {
-          return { ...prevState, opponentSpecturmMap: icomingSpectrumData };
-        });
-      });
+      socket.on(
+        "spectrum-map",
+        (icomingSpectrumData: opponentSpecturmMapInt) => {
+          updatePlayerData((prevState: PlayerDataInt) => {
+            return { ...prevState, opponentSpecturmMap: icomingSpectrumData };
+          });
+        }
+      );
 
       // THIS EVENT WILL TRIGGER IF THE PLAYER LOSES
       socket.on("gameOver", () => {
         setPlaying(false);
-        updatePlayerData((prevState: any) => {
+        updatePlayerData((prevState: PlayerDataInt) => {
           return { ...prevState, loser: true };
         });
       });
@@ -122,28 +127,28 @@ const HomePage = () => {
       // THIS EVENT WILL TRIGGER IF THE PLAYER WIN
       socket.on("winner", () => {
         setPlaying(false);
-        updatePlayerData((prevState: any) => {
+        updatePlayerData((prevState: PlayerDataInt) => {
           return { ...prevState, winner: true };
         });
       });
 
       // THIS EVENT WILL TRIGGER TO GET THE SCORE GAME OF THE PLAYER
       socket.on("score", (score) => {
-        updatePlayerData((prevState: any) => {
+        updatePlayerData((prevState: PlayerDataInt) => {
           return { ...prevState, score };
         });
       });
 
       // THIS EVENT WILL TRIGGER TO GET THE DROOPED ROWS COUNT
-      socket.on("dropped-lines", (droppedLines) => {
-        updatePlayerData((prevState: any) => {
+      socket.on("dropped-lines", (droppedLines: number) => {
+        updatePlayerData((prevState: PlayerDataInt) => {
           return { ...prevState, droppedLines };
         });
       });
 
       // THIS EVENT WILL TRIGGER TO GET THE NEXT SHAPE
-      socket.on("next-shape", (playerNextShape) => {
-        updatePlayerData((prevState: any) => {
+      socket.on("next-shape", (playerNextShape: ShapeInterface) => {
+        updatePlayerData((prevState: PlayerDataInt) => {
           return { ...prevState, playerNextShape };
         });
       });

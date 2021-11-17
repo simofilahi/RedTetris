@@ -1,10 +1,11 @@
 import { LeftHelperBoard, RightHelperBoard } from "./game_map_helper";
 import { useContext } from "react";
 import { PlayerDataContext } from ".";
+import { ContextInt, SquareInt } from "./interfaces";
 
 // BUTTON TO START THE GAME THIS WILL APPEAR JUST FOR LEADER
 const StartGameBtn = () => {
-  const { socket } = useContext(PlayerDataContext);
+  const { socket }: ContextInt = useContext(PlayerDataContext);
   return (
     <div
       className="bg-white h-12 w-52 text-black flex justify-center cursor-pointer items-center font-bold text-lg"
@@ -20,7 +21,7 @@ const StartGameBtn = () => {
 
 // MAP BODY OF THE GAME
 const MapBody = () => {
-  const { playerData } = useContext(PlayerDataContext);
+  const { playerData }: ContextInt = useContext(PlayerDataContext);
   if (!playerData?.playerLand?.length && playerData.playerRole === "leader") {
     return (
       <div className="">
@@ -45,31 +46,40 @@ const MapBody = () => {
 
 // DISPLAYING THE GAME MAP
 const MapRender = () => {
-  const { playerData } = useContext(PlayerDataContext);
-  return playerData?.playerLand?.map((row: any) => {
-    return row.map((col: any, index: number) => {
-      if (col.value === "#") {
-        return <div key={index} className="bg-white"></div>;
-      }
-      return (
-        <div
-          key={index}
-          style={{ backgroundColor: col.color, borderWidth: "1px" }}
-          className="border-gray-400"
-        ></div>
-      );
-    });
-  });
+  const { playerData }: ContextInt = useContext(PlayerDataContext);
+
+  if (playerData?.playerLand) {
+    return (
+      <>
+        {playerData.playerLand.map((row: Array<SquareInt>) => {
+          console.log({ row });
+          return row.map((col: SquareInt, index: number) => {
+            if (col.value === "#") {
+              return <div key={index} className="bg-white"></div>;
+            }
+            return (
+              <div
+                key={index}
+                style={{ backgroundColor: col.color, borderWidth: "1px" }}
+                className="border-gray-400"
+              ></div>
+            );
+          });
+        })}
+      </>
+    );
+  }
+  return <></>;
 };
 
 const GameMap = () => {
-  const { playerData } = useContext(PlayerDataContext);
+  const { playerData }: ContextInt = useContext(PlayerDataContext);
 
   /* VERIFY IF THE GAME NOT STARTED YET
    IF ITS DISPLAY EMPTY MAP INSIDE IT A BUTTON FOR 
    THE LEADER TO START THE GAME
   */
-  if (!playerData?.playerLand) {
+  if (!playerData.playerLand) {
     return (
       <div
         className="flex justify-center items-center border-white border-2"

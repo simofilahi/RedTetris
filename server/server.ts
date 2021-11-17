@@ -4,7 +4,7 @@ const cors = require("cors");
 const path = require("path");
 const dotenv = require("dotenv");
 // DB CONNECTION
-const connect = require("./config/connection");
+const connect = require("./src/config/connection");
 
 // LOAD ENV VARS
 dotenv.config({ path: ".env" });
@@ -22,7 +22,9 @@ const io = new Server(server, {
   cors: { origin: "*" },
 });
 
-require("./socket/")(io);
+const socketListener = require("./src/socket/");
+
+socketListener(io);
 
 // CORS
 app.use(cors());

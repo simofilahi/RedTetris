@@ -9,6 +9,7 @@ import { PlayerDataContext } from ".";
 import { useContext } from "react";
 import volumeImg from "../../assets/img/volume.png";
 import muteImg from "../../assets/img/mute.png";
+import { ContextInt, SquareInt } from "./interfaces";
 
 // RIGHT HELPER BOARD COMPONENTS
 
@@ -17,8 +18,8 @@ const SpectrumMapCmp = (SpectrumMap: any) => {
   return (
     <div className="grid grid-cols-10">
       {SpectrumMap &&
-        SpectrumMap.map((row: any) => {
-          return row.map((col: any, index: number) => {
+        SpectrumMap.map((row: Array<SquareInt>) => {
+          return row.map((col: SquareInt, index: number) => {
             if (col.value === "*") {
               return <div key={index} className="p-2 bg-blue-200"></div>;
             } else {
@@ -32,7 +33,7 @@ const SpectrumMapCmp = (SpectrumMap: any) => {
 
 // SPECTRUM MAP OF THE OPPONENT
 const OpponentSpecturmMap = () => {
-  const { playerData } = useContext(PlayerDataContext);
+  const { playerData }: ContextInt = useContext(PlayerDataContext);
   return (
     <div className="h-96  w-4/5 flex flex-col py-5">
       <div className="py-1 border-white border-2 flex ">
@@ -52,7 +53,7 @@ const OpponentSpecturmMap = () => {
 
 // GRAVITY OF FALLING SHAPES
 const GravityCmp = () => {
-  const { playerData, socket, updatePlayerData } =
+  const { playerData, socket, updatePlayerData }: ContextInt =
     useContext(PlayerDataContext);
 
   // PREDEFIND GRAVITY SPEED
@@ -76,8 +77,8 @@ const GravityCmp = () => {
 
       socket.emit(
         "gravitiy-setting",
-        !(playerData?.gravityPropsIndex - 1 < 0)
-          ? gravityProps[playerData.gravityPropsIndex - 1].duration
+        !(playerData?.gravityPropsIndex! - 1 < 0)
+          ? gravityProps[playerData.gravityPropsIndex! - 1].duration
           : gravityProps[0].duration
       );
     } else if (arrowIcon === "right") {
@@ -91,8 +92,8 @@ const GravityCmp = () => {
       });
       socket.emit(
         "gravitiy-setting",
-        !(playerData?.gravityPropsIndex + 1 > 2)
-          ? gravityProps[playerData.gravityPropsIndex + 1].duration
+        !(playerData?.gravityPropsIndex! + 1 > 2)
+          ? gravityProps[playerData.gravityPropsIndex! + 1].duration
           : gravityProps[0].duration
       );
     }
@@ -111,7 +112,7 @@ const GravityCmp = () => {
           <FontAwesomeIcon icon={faArrowLeft} />
         </div>
         <div className="text-black px-2 border-t-2 border-b-2 border-black">
-          {gravityProps[playerData?.gravityPropsIndex].title ||
+          {gravityProps[playerData?.gravityPropsIndex!].title ||
             gravityProps[0].title}
         </div>
         <div
@@ -127,7 +128,7 @@ const GravityCmp = () => {
 
 // PAUSE AND START THE GAME
 const PauseAndStartCmp = () => {
-  const { playerData, setPlaying, socket, updatePlayerData } =
+  const { playerData, setPlaying, socket, updatePlayerData }: ContextInt =
     useContext(PlayerDataContext);
   const editGameControl = (e: any) => {
     e.preventDefault();
@@ -165,7 +166,7 @@ const PauseAndStartCmp = () => {
 
 // SOUND SETTINGS
 const SoundControl = () => {
-  const { playing, setPlaying } = useContext(PlayerDataContext);
+  const { playing, setPlaying }: ContextInt = useContext(PlayerDataContext);
   return (
     <div className="h-32 w-4/5 flex flex-col py-5">
       <div className="bg-white text-black flex justify-center items-center border-b-2 border-black">
@@ -186,7 +187,7 @@ const SoundControl = () => {
 
 // RIGHT BOARD COMPONENT
 export const RightHelperBoard = () => {
-  const { playerData } = useContext(PlayerDataContext);
+  const { playerData }: ContextInt = useContext(PlayerDataContext);
   return (
     <div
       className=" border-white border-2 flex items-center flex-col "
@@ -208,35 +209,39 @@ export const RightHelperBoard = () => {
 
 // LEFT HELPER BORAD COMPONENTS
 const PlayerNextShape = () => {
-  const { playerData, socket } = useContext(PlayerDataContext);
-  return (
-    <div className="h-96  w-4/5 flex flex-col py-5">
-      <div className="py-1 border-white border-2 flex ">
-        <div className="flex-1 text-center">Next Shape</div>
-      </div>
-      <div className="flex-1 w-full border-white border-2 justify-center items-center flex">
-        <div
-          className={`grid grid-cols-${playerData?.playerNextShape?.pieces[0].length} p-10 `}
-        >
-          {playerData?.playerNextShape?.pieces?.map((row: any) => {
-            return row.map((col: any, index: any) => {
-              return (
-                <div
-                  key={index}
-                  className="p-5"
-                  style={{ backgroundColor: col.color }}
-                ></div>
-              );
-            });
-          })}
+  const { playerData }: ContextInt = useContext(PlayerDataContext);
+
+  if (playerData?.playerNextShape) {
+    return (
+      <div className="h-96  w-4/5 flex flex-col py-5">
+        <div className="py-1 border-white border-2 flex ">
+          <div className="flex-1 text-center">Next Shape</div>
+        </div>
+        <div className="flex-1 w-full border-white border-2 justify-center items-center flex">
+          <div
+            className={`grid grid-cols-${playerData.playerNextShape.pieces[0].length} p-10 `}
+          >
+            {playerData.playerNextShape.pieces?.map((row: any) => {
+              return row.map((col: any, index: any) => {
+                return (
+                  <div
+                    key={index}
+                    className="p-5"
+                    style={{ backgroundColor: col.color }}
+                  ></div>
+                );
+              });
+            })}
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  }
+  return <></>;
 };
 
 const PlayerScore = () => {
-  const { playerData } = useContext(PlayerDataContext);
+  const { playerData }: ContextInt = useContext(PlayerDataContext);
   return (
     <div className="h-32 w-4/5 flex flex-col py-5">
       <div className="py-1 border-white border-2 flex ">
@@ -250,7 +255,7 @@ const PlayerScore = () => {
 };
 
 const PlayerDropedLines = () => {
-  const { playerData } = useContext(PlayerDataContext);
+  const { playerData }: ContextInt = useContext(PlayerDataContext);
   return (
     <div className="h-32 w-4/5  flex flex-col py-5">
       <div className="py-1 border-white border-2 flex ">

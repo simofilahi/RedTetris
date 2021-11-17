@@ -167,32 +167,34 @@ class Game extends ShapesFactory implements GameInt {
     // CLEAR THE MAP
     this.clear();
     // ITERATE TROUGH ROWS OF CURRENT SHAPE
-    for (
-      let shapeRow: number = 0;
-      shapeRow < this.shape.pieces.length;
-      shapeRow++
-    ) {
-      // ITERATE TROUGH ROWS OF CURRENT SHAPE
+    if (this.shape) {
       for (
-        let shapeCol: number = 0;
-        shapeCol < this.shape.pieces[shapeRow].length;
-        shapeCol++
+        let shapeRow: number = 0;
+        shapeRow < this.shape.pieces.length;
+        shapeRow++
       ) {
-        /* CALCULATE THE ROW AND COL OF 
-           POSITION IN THE MAP THAT THE SAQURE OF SHAPE WILL BE FIT IN */
-        const row = shapeRow + this.shape.cords.row;
-        const col = shapeCol + this.shape.cords.col;
+        // ITERATE TROUGH ROWS OF CURRENT SHAPE
+        for (
+          let shapeCol: number = 0;
+          shapeCol < this.shape.pieces[shapeRow].length;
+          shapeCol++
+        ) {
+          /* CALCULATE THE ROW AND COL OF 
+             POSITION IN THE MAP THAT THE SAQURE OF SHAPE WILL BE FIT IN */
+          const row = shapeRow + this.shape.cords.row;
+          const col = shapeCol + this.shape.cords.col;
 
-        // ADD PIECE AT A POSTION IN THE MAP
-        if (
-          this.map[row][col]?.value == "." ||
-          this.map[row][col]?.value == "0"
-        )
-          this.map[row][col] = {
-            ...JSON.parse(
-              JSON.stringify(this.shape.pieces[shapeRow][shapeCol])
-            ),
-          };
+          // ADD PIECE AT A POSTION IN THE MAP
+          if (
+            this.map[row][col]?.value == "." ||
+            this.map[row][col]?.value == "0"
+          )
+            this.map[row][col] = {
+              ...JSON.parse(
+                JSON.stringify(this.shape!.pieces[shapeRow][shapeCol])
+              ),
+            };
+        }
       }
     }
   }
@@ -314,7 +316,7 @@ class Game extends ShapesFactory implements GameInt {
     /* IF THERE ARE NO COLLISOINS
        KEEP INCREMENT COL AND MOVE SHAPE TO RIGHT
     */
-    if (!this.gameOver) {
+    if (this.shape && !this.gameOver) {
       this.shape.cords.col++;
       if (!this.collisionDetecter()) {
         this.updateMap();
