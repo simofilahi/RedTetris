@@ -1,4 +1,4 @@
-import Player from "../../server/src/utils/Player";
+import Player from "../utils/Player";
 
 const mongoose = require("mongoose");
 

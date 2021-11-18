@@ -1,5 +1,6 @@
-import Game from "../../server/src/utils/Game";
-import { Square } from "../../server/src/utils/interfaces";
+import Game from "../utils/Game";
+import { Square } from "../utils/interfaces";
+import { shapesPools } from "../utils/shapesFactory";
 const mongoose = require("mongoose");
 
 let game: Game;
@@ -131,9 +132,10 @@ describe("Game class tests", () => {
   it("Should get the next shape from Shapes pool", () => {
     const shapesPool = game.getShapesPool(POOL_ID);
 
+    console.log(shapesPool);
     const shape = game.getNextShape();
     expect(shape).toBeDefined();
-    expect(shape).toStrictEqual(shapesPool[1]);
+    expect(shape).toStrictEqual(shapesPool![1]);
   });
 
   it("Should clear the map from non-landed shapes", () => {

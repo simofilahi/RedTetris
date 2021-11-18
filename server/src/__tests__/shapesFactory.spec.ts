@@ -1,9 +1,6 @@
-import ShapesFactory, {
-  shapesPools,
-} from "../../server/src/utils/shapesFactory";
+import ShapesFactory, { shapesPools } from "../utils/shapesFactory";
 
 const mongoose = require("mongoose");
-// import connect from "../../server/config/connection";
 
 describe("Shapes Factory tests", () => {
   let shapesFactory: ShapesFactory;

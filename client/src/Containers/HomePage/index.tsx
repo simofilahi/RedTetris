@@ -16,7 +16,7 @@ import {
 
 const socket = io("http://10.11.3.11:1337");
 
-export const PlayerDataContext: any = React.createContext<ContextInt>({
+export const PlayerDataContext = React.createContext<ContextInt>({
   playerData: {},
   updatePlayerData: () => {},
   setPlaying: () => {},
