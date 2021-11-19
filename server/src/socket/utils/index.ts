@@ -19,28 +19,42 @@ export async function getSpectrumMap(
   socket: any,
   { roomId, player, playerName }: userData
 ) {
-  if ((await getSocketInstanceCount(io, roomId)) < 3) {
-    socket.to(roomId).emit("spectrum-map", {
-      spectrum: player.getlandSpectrum(),
-      playerName: playerName,
-    });
-  }
+  socket.to(roomId).emit("spectrum-map", {
+    spectrum: player.getlandSpectrum(),
+    playerName: playerName,
+  });
 }
 
 // CHECK THE GAME IF OVER FOR CURRENT SOCKET
-export function checkGameOver(
+export async function checkGameOver(
   socket: any,
   { player, roomId }: userData
-): boolean {
+): Promise<boolean> {
   if (player.gameOver) {
+    const { playerName } = socket.data.userData;
     // SEND TO THE CURRENT PLAYER GAME OVER
     socket.emit("gameOver", true);
+
+    // SET LEADER PROP IN DB
+    const game = await GameModel.findOne({
+      _id: roomId,
+    });
+
+    if (game) {
+      game.players.forEach((player: any) => {
+        if (player.name === playerName) {
+          player.role = "follower";
+        }
+      });
+      await game.save();
+    }
 
     // LEAVE THIS PLAYER FROM GAME ROOM
     socket.leave(roomId);
 
     // RESET THE GAME DATA FOR THAT CURRENT PLAYER TO NULL
-    socket.data.gameData.player = null;
+    socket.data.gameData = null;
+    socket.data.userData = null;
 
     return true;
   }
@@ -79,9 +93,25 @@ export async function checkWinner(
   roomId: string | undefined,
   multiplayer: boolean | undefined
 ): Promise<boolean> {
+  const { playerName } = socket.data.userData;
   if (multiplayer && (await getSocketInstanceCount(io, roomId)) < 2) {
     // SEND WINNER
     socket.emit("winner");
+
+    // SET LEADER PROP IN DB
+    const game = await GameModel.findOne({
+      _id: roomId,
+    });
+
+    if (game) {
+      game.players.forEach((player: any) => {
+        if (player.name === playerName) {
+          player.role = "leader";
+        }
+      });
+      await game.save();
+      await GameModel.findOneAndUpdate({ _id: roomId }, { state: "finished" });
+    }
 
     // CURRENT PLAYER LEAVE THE ROOM
     socket.leave(roomId);
@@ -90,7 +120,7 @@ export async function checkWinner(
     socket.data.gameData.player = null;
 
     // DROP THE GAME DOC
-    dropGameDocByWinner(socket);
+    // dropGameDocByWinner(socket);
 
     return true;
   }

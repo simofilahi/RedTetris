@@ -119,8 +119,36 @@ const HomePage = () => {
       socket.on(
         "spectrum-map",
         (icomingSpectrumData: opponentSpecturmMapInt) => {
-          updatePlayerData((prevState: PlayerDataInt) => {
-            return { ...prevState, opponentSpecturmMap: icomingSpectrumData };
+          console.log({ icomingSpectrumData });
+          updatePlayerData((prevState: any) => {
+            let newState;
+            if (!prevState?.opponentSpecturmMap) {
+              console.log("1");
+              newState = {
+                ...prevState,
+                opponentSpecturmMap: [icomingSpectrumData],
+              };
+            } else {
+              let index;
+              if (
+                (index = prevState?.opponentSpecturmMap.findIndex(
+                  (elem: opponentSpecturmMapInt) =>
+                    elem.playerName === icomingSpectrumData.playerName
+                )) === -1
+              ) {
+                newState = {
+                  ...prevState,
+                  opponentSpecturmMap: [
+                    ...prevState.opponentSpecturmMap,
+                    icomingSpectrumData,
+                  ],
+                };
+              } else {
+                newState = JSON.parse(JSON.stringify(prevState));
+                newState.opponentSpecturmMap[index] = icomingSpectrumData;
+              }
+            }
+            return newState;
           });
         }
       );

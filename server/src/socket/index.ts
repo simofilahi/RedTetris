@@ -75,6 +75,7 @@ async function joinToGame(
       // VERIFY IF GAME IS ALREADY STARTED
       if (doc.state === "started") {
         socket.emit("game-status", "started");
+        return;
       }
 
       // FIND THE GAME AND UPDATE IT BY ADDING NEW PLAYER TO PLAYERS ARRAY IN DB
@@ -150,27 +151,29 @@ async function orderToStartTheGameByLeader(socket: any) {
   let game = await GameModel.findOne({ _id: roomId });
 
   // INCOMING USER ORDER EVENT SHOULD MATCH THE FRIST ONE WHO JOINED THE GAME
-  if (
-    game?.players[0]["name"] === playerName &&
-    game?.players[0]["role"] === "leader"
-  ) {
-    // UPDATE STATE OF GAME IN DB
-    game = await GameModel.findByIdAndUpdate(
-      roomId,
-      { state: "started" },
-      { new: true }
-    );
 
-    if (game.state === "started") {
-      // EMIT GAME STARTD EVENT TO ALL PLAYERS JOINED TO THE GAME ROOM ID EXCEPT THE LEADER
-      socket.to(game._id.toString()).emit("game-started");
+  if (game) {
+    game.players.forEach(async (player: any) => {
+      if (player.name === playerName && player.role === "leader") {
+        // UPDATE STATE OF GAME IN DB
+        game = await GameModel.findByIdAndUpdate(
+          roomId,
+          { state: "started" },
+          { new: true }
+        );
 
-      // EMIT GAME STARTD EVENT TO THE LEADER
-      socket.emit("game-started");
+        if (game.state === "started") {
+          // EMIT GAME STARTD EVENT TO ALL PLAYERS JOINED TO THE GAME ROOM ID EXCEPT THE LEADER
+          socket.to(game._id.toString()).emit("game-started");
 
-      // SET GAMESTATUS TO STARTED
-      socket.data.userData.gameStatus = "started";
-    }
+          // EMIT GAME STARTD EVENT TO THE LEADER
+          socket.emit("game-started");
+
+          // SET GAMESTATUS TO STARTED
+          socket.data.userData.gameStatus = "started";
+        }
+      }
+    });
   }
 }
 
@@ -196,7 +199,7 @@ async function StartGame(socket: any, io: any) {
       await delay(gravityInterval || 1000);
 
       // CHECK IF CURRENT PLAYER LOSES
-      if (checkGameOver(socket, { player, roomId })) {
+      if (await checkGameOver(socket, { player, roomId })) {
         return;
       }
 
@@ -270,7 +273,7 @@ async function moveDown(socket: any, io: any) {
     player.moveDown();
 
     // CHECK THE MAP OF CURRENT PLAYER IS IT FULL
-    if (checkGameOver(socket, { player, roomId })) {
+    if (await checkGameOver(socket, { player, roomId })) {
       return;
     }
 

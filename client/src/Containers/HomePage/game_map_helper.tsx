@@ -9,7 +9,12 @@ import { PlayerDataContext } from ".";
 import React, { useContext } from "react";
 import volumeImg from "assets/img/volume.png";
 import muteImg from "assets/img/mute.png";
-import { ContextInt, SquareInt, PlayerDataInt } from "./interfaces";
+import {
+  ContextInt,
+  SquareInt,
+  PlayerDataInt,
+  opponentSpecturmMapInt,
+} from "./interfaces";
 
 // RIGHT HELPER BOARD COMPONENTS
 
@@ -34,19 +39,30 @@ const SpectrumMapCmp = (SpectrumMap: Array<Array<SquareInt>>) => {
 // SPECTRUM MAP OF THE OPPONENT
 const OpponentSpecturmMap = () => {
   const { playerData }: ContextInt = useContext(PlayerDataContext);
+
+  if (!playerData?.opponentSpecturmMap) return null;
+
   return (
-    <div className="h-96  w-4/5 flex flex-col py-5">
-      <div className="py-1 border-white border-2 flex ">
-        <div className="flex-1 text-center">
-          Opponent :{" "}
-          {playerData.opponentSpecturmMap &&
-            playerData.opponentSpecturmMap["playerName"]}
-        </div>
-      </div>
-      <div className="flex-1 w-full border-white border-2 justify-center items-center flex">
-        {playerData.opponentSpecturmMap &&
-          SpectrumMapCmp(playerData.opponentSpecturmMap["spectrum"])}
-      </div>
+    <div
+      className="h-1  w-4/5 flex flex-col py-5 overflow-y-scroll"
+      style={{ height: "400px" }}
+    >
+      {playerData.opponentSpecturmMap.map(
+        (spectrum: opponentSpecturmMapInt) => {
+          return (
+            <div className="h-96  w-4/5 flex flex-col py-5">
+              <div className="py-1 border-white border-2 flex ">
+                <div className="flex-1 text-center">
+                  Opponent : {spectrum["playerName"]}
+                </div>
+              </div>
+              <div className="flex-1 w-full border-white border-2 justify-center items-center flex">
+                {SpectrumMapCmp(spectrum["spectrum"])}
+              </div>
+            </div>
+          );
+        }
+      )}
     </div>
   );
 };

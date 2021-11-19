@@ -11,7 +11,7 @@ export interface PlayerDataInt {
   socket?: any;
   gravityPropsIndex?: number;
   playerLand?: Array<Array<SquareInt>>;
-  opponentSpecturmMap?: opponentSpecturmMapInt;
+  opponentSpecturmMap?: Array<opponentSpecturmMapInt>;
   loser?: boolean;
   winner?: boolean;
   score?: number;
