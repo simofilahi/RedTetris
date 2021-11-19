@@ -29,6 +29,9 @@ const HomePage = () => {
   const [playerData, updatePlayerData] = useState<PlayerDataInt>({
     gameStatus: "resume",
     gravityPropsIndex: 0,
+    joinedPlayersCount: 0,
+    game_room_full: false,
+    game_state: "",
   });
 
   // SOUND PLAYER SETTING
@@ -81,6 +84,13 @@ const HomePage = () => {
         }
       );
 
+      // THIS EVENT WILL TRIGGER IN THE CASE NEW PLAYER JOINED
+      socket.on("player-joined-counter", (joinedPlayersCount) => {
+        updatePlayerData((prevState: PlayerDataInt) => {
+          return { ...prevState, joinedPlayersCount };
+        });
+      });
+
       // THIS EVENT WILL TRIGGER IN THE CASE LEADER STARTED THE GAME
       socket.on("game-started", () => {
         setPlaying(true);
@@ -131,6 +141,13 @@ const HomePage = () => {
         });
       });
 
+      // THIS EVENT WILL TRIGGER IF GAME ROOM FULL IS
+      socket.on("game-room-full", () => {
+        updatePlayerData((prevState: PlayerDataInt) => {
+          return { ...prevState, game_room_full: true };
+        });
+      });
+
       // THIS EVENT WILL TRIGGER TO GET THE SCORE GAME OF THE PLAYER
       socket.on("score", (score) => {
         updatePlayerData((prevState: PlayerDataInt) => {
@@ -149,6 +166,13 @@ const HomePage = () => {
       socket.on("next-shape", (playerNextShape: ShapeInterface) => {
         updatePlayerData((prevState: PlayerDataInt) => {
           return { ...prevState, playerNextShape };
+        });
+      });
+
+      // THIS EVENT WILL TRIGGER TO CHECK IT THE GAME STARTED OR NOT YET
+      socket.on("game-status", (status: string) => {
+        updatePlayerData((prevState: PlayerDataInt) => {
+          return { ...prevState, game_state: status };
         });
       });
 

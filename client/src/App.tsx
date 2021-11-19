@@ -2,7 +2,7 @@ import HomePage from "./Containers/HomePage";
 
 function App() {
   return (
-    <div>
+    <div id="wrapper">
       <HomePage />
     </div>
   );

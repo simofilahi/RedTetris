@@ -12,12 +12,14 @@ import {
   getPlayerRole,
   getScore,
   getSpectrumMap,
+  getSocketInstanceCount,
 } from "./utils";
 const GameModel = require("../models/game");
 const mongoose = require("mongoose");
 
 // JOINING THE GAME ROOM
 async function joinToGame(
+  io: any,
   socket: any,
   { roomTitle, playerName, multiplayer, gravityInterval }: userData,
   cb: any
@@ -33,6 +35,12 @@ async function joinToGame(
 
     // DOC VARIABLE WILL HOLD THE DATA OF THE ROOM
     let doc;
+
+    // ROOM ID
+    let roomId: string;
+
+    // FLAG
+    let firstPlayer: boolean = true;
 
     // IN CASE NO GAME FOUND WITH GIVEN NAME
     if (!game?.length) {
@@ -54,7 +62,7 @@ async function joinToGame(
       */
       doc = game[0];
     } else if (
-      game[0]?.players.length < 2 &&
+      // game[0]?.players.length < 2 &&
       !findPlayer(game[0].players, playerName)
     ) {
       /*
@@ -62,19 +70,24 @@ async function joinToGame(
         AND THE INCOMING REQUEST FROM A PLAYER WHO DOESN'T IN GAME ROOM
       */
 
+      doc = await GameModel.findOne({ title: roomTitle });
+
+      // VERIFY IF GAME IS ALREADY STARTED
+      if (doc.state === "started") {
+        socket.emit("game-status", "started");
+      }
+
       // FIND THE GAME AND UPDATE IT BY ADDING NEW PLAYER TO PLAYERS ARRAY IN DB
       doc = await GameModel.findOneAndUpdate(
         { title: roomTitle },
         { $push: { players: { name: playerName } } },
         { new: true }
       );
-    } else {
-      console.log("You cannot join");
-      return;
-    }
 
+      firstPlayer = false;
+    }
     // GET THE ROOM_ID FROM THE DOC
-    const roomId: string = doc._id.toString();
+    roomId = doc._id.toString();
 
     // GET THE PLAYER ROLE
     const playerRole: string = getPlayerRole(doc?.players, playerName);
@@ -100,6 +113,21 @@ async function joinToGame(
     // ADD CURRENT SOCKET TO A ROOM
     socket.join(roomId);
 
+    socket.emit(
+      "player-joined-counter",
+      await getSocketInstanceCount(io, roomId)
+    );
+
+    if (!firstPlayer) {
+      // BROADCAST TO OTHER PLAYER THAT SOMEONE HAS JOINED THE ROOM;
+      socket
+        .to(roomId)
+        .emit(
+          "player-joined-counter",
+          await getSocketInstanceCount(io, roomId)
+        );
+    }
+
     // SHARE THE DATA WITH THE CLIENT BY A CALLBACK
     cb(false, {
       roomTitle,
@@ -119,20 +147,30 @@ async function orderToStartTheGameByLeader(socket: any) {
   const { playerName, roomTitle, roomId }: userData = socket.data.userData;
 
   // LOOK FOR GAME NAME IF IT'S ALREADY CREATED IN DB
-  const game = await GameModel.findOne({ _id: roomId });
+  let game = await GameModel.findOne({ _id: roomId });
 
   // INCOMING USER ORDER EVENT SHOULD MATCH THE FRIST ONE WHO JOINED THE GAME
   if (
     game?.players[0]["name"] === playerName &&
     game?.players[0]["role"] === "leader"
   ) {
-    // EMIT GAME STARTD EVENT TO ALL PLAYERS JOINED TO THE GAME ROOM ID EXCEPT THE LEADER
-    socket.to(game._id.toString()).emit("game-started");
+    // UPDATE STATE OF GAME IN DB
+    game = await GameModel.findByIdAndUpdate(
+      roomId,
+      { state: "started" },
+      { new: true }
+    );
 
-    // EMIT GAME STARTD EVENT TO THE LEADER
-    socket.emit("game-started");
+    if (game.state === "started") {
+      // EMIT GAME STARTD EVENT TO ALL PLAYERS JOINED TO THE GAME ROOM ID EXCEPT THE LEADER
+      socket.to(game._id.toString()).emit("game-started");
 
-    socket.data.userData.gameStatus = "started";
+      // EMIT GAME STARTD EVENT TO THE LEADER
+      socket.emit("game-started");
+
+      // SET GAMESTATUS TO STARTED
+      socket.data.userData.gameStatus = "started";
+    }
   }
 }
 
@@ -142,50 +180,54 @@ async function StartGame(socket: any, io: any) {
     new Promise((resolve) => setTimeout(resolve, ms));
 
   for (;;) {
-    const {
-      playerName,
-      roomId,
-      multiplayer,
-      gravityInterval,
-      gameStatus,
-    }: userData = socket.data.userData;
+    if (socket?.data?.userData && socket?.data?.gameData) {
+      const {
+        playerName,
+        roomId,
+        multiplayer,
+        gravityInterval,
+        gameStatus,
+      }: userData = socket.data.userData;
 
-    const { player } = socket.data.gameData;
-    console.log({ multiplayer });
+      const { player } = socket.data.gameData;
+      console.log({ multiplayer });
 
-    if (gameStatus === "pause") break;
-    await delay(gravityInterval || 1000);
+      if (gameStatus === "pause") break;
+      await delay(gravityInterval || 1000);
 
-    // CHECK IF CURRENT PLAYER LOSES
-    if (checkGameOver(socket, { player, roomId })) {
+      // CHECK IF CURRENT PLAYER LOSES
+      if (checkGameOver(socket, { player, roomId })) {
+        return;
+      }
+
+      // CHECK THE GAME WINNER
+      if (await checkWinner(io, socket, roomId, multiplayer)) {
+        return;
+      }
+
+      // GET THE NEXT TETRIS SHAPE AND SEND IT TO THE CURRENT PLAYER
+      getNextShape(socket, player);
+
+      // MOVE THE TETRIS SHAPE DOWN IN PALYER MAP
+      player.moveDown();
+
+      // CHECK IF SOME ROWS OF CURRENT PLAYER'S DROPPED
+      droppedRows(socket, { player, roomId });
+
+      // GET THE  MAP AND SEND IT TO OTHER PLAYER IN THE SAME ROOM
+      getMap(socket, player);
+
+      // GET THE THE SCORE AND SEND IT TO THE CURRENT PLAYER
+      getScore(socket, player);
+
+      // GET THE DROPPED LINES AND SENT IT TO THE CURRENT PLAYER
+      getDroppedLineCount(socket, player);
+
+      // GET THE SPECTRUM MAP OF CURRENT PLAYER AND SEND IT TO OTHER PLAYER IN THE SAME ROOM
+      getSpectrumMap(io, socket, { player, playerName, roomId });
+    } else {
       return;
     }
-
-    // CHECK THE GAME WINNER
-    if (await checkWinner(io, socket, roomId, multiplayer)) {
-      return;
-    }
-
-    // GET THE NEXT TETRIS SHAPE AND SEND IT TO THE CURRENT PLAYER
-    getNextShape(socket, player);
-
-    // MOVE THE TETRIS SHAPE DOWN IN PALYER MAP
-    player.moveDown();
-
-    // CHECK IF SOME ROWS OF CURRENT PLAYER'S DROPPED
-    droppedRows(socket, { player, roomId });
-
-    // GET THE  MAP AND SEND IT TO OTHER PLAYER IN THE SAME ROOM
-    getMap(socket, player);
-
-    // GET THE THE SCORE AND SEND IT TO THE CURRENT PLAYER
-    getScore(socket, player);
-
-    // GET THE DROPPED LINES AND SENT IT TO THE CURRENT PLAYER
-    getDroppedLineCount(socket, player);
-
-    // GET THE SPECTRUM MAP OF CURRENT PLAYER AND SEND IT TO OTHER PLAYER IN THE SAME ROOM
-    getSpectrumMap(socket, { player, playerName, roomId });
   }
 }
 
@@ -256,7 +298,7 @@ async function moveDown(socket: any, io: any) {
     getNextShape(socket, player);
 
     // GET THE SPECTRUM MAP OF CURRENT PLAYER AND SEND IT TO OTHER PLAYER IN THE SAME ROOM
-    getSpectrumMap(socket, { player, playerName, roomId });
+    getSpectrumMap(io, socket, { player, playerName, roomId });
   }
 }
 
@@ -318,7 +360,7 @@ function resumeOrPauseTheGame(socket: any, io: any, gameStatus: string) {
 }
 
 // HANDLING INSTANT DROP OF CURRENT SHPE
-function instantDrop(socket: any) {
+function instantDrop(io: any, socket: any) {
   const { playerName, roomId }: userData = socket.data.userData;
 
   const { player } = socket.data.gameData;
@@ -344,7 +386,7 @@ function instantDrop(socket: any) {
     getNextShape(socket, player);
 
     // GET THE SPECTRUM MAP AND SEND IT TO OTHER PLAYER IN THE SAME ROOM
-    getSpectrumMap(socket, { player, playerName, roomId });
+    getSpectrumMap(io, socket, { player, playerName, roomId });
   }
 }
 
@@ -355,7 +397,7 @@ function socketListener(io: any) {
       socket.on(
         "join",
         ({ roomTitle, playerName, multiplayer }: any, cb: any) => {
-          joinToGame(socket, { roomTitle, playerName, multiplayer }, cb);
+          joinToGame(io, socket, { roomTitle, playerName, multiplayer }, cb);
         }
       );
 
@@ -391,7 +433,7 @@ function socketListener(io: any) {
 
       // INSTANT DROP OF THE CURRENT SHAPE
       socket.on("space-key", () => {
-        instantDrop(socket);
+        instantDrop(io, socket);
       });
 
       // ADD UNUSABLE ROWS TO THE MAP

@@ -17,6 +17,9 @@ export interface PlayerDataInt {
   score?: number;
   droppedLines?: number;
   playerNextShape?: ShapeInterface;
+  joinedPlayersCount?: number;
+  game_room_full?: boolean;
+  game_state?: string;
 }
 
 export interface opponentSpecturmMapInt {
@@ -46,4 +49,11 @@ export interface ContextInt {
   setPlaying: Function;
   playing: boolean;
   socket: any;
+}
+
+export interface ModalInt {
+  show: boolean;
+  onClose: Function;
+  children: any;
+  title: string;
 }

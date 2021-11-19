@@ -185,6 +185,21 @@ const SoundControl = () => {
   );
 };
 
+// JOINED PLAYERS COUNT
+const JoinedPlayers = () => {
+  const { playerData }: ContextInt = useContext(PlayerDataContext);
+  return (
+    <div className="h-32 w-4/5 flex flex-col py-5">
+      <div className="bg-white text-black flex justify-center items-center border-b-2 border-black">
+        Joined Players
+      </div>
+      <div className="flex-1 w-full border-white border-2 flex justify-center items-center bg-white text-black">
+        {playerData?.joinedPlayersCount}
+      </div>
+    </div>
+  );
+};
+
 // RIGHT BOARD COMPONENT
 export const RightHelperBoard = () => {
   const { playerData }: ContextInt = useContext(PlayerDataContext);
@@ -202,6 +217,7 @@ export const RightHelperBoard = () => {
         </>
       )}
       <SoundControl />
+      <JoinedPlayers />
     </div>
   );
 };

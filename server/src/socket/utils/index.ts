@@ -6,7 +6,7 @@ const GameModel = require("../../models/game");
 // GET THE SOCKET INSTANCES COUNT JOINED INTO THE SAME ROOMID
 export async function getSocketInstanceCount(
   io: any,
-  roomId: number | undefined
+  roomId: string | undefined
 ): Promise<number> {
   const sockets = await io.in(roomId).fetchSockets();
   const subscribersCount = sockets.length;
@@ -14,14 +14,17 @@ export async function getSocketInstanceCount(
 }
 
 // GET THE SPECTRUM OF CURRENT PLAYER AND SEND IT TO OTHER PLAYERS
-export function getSpectrumMap(
+export async function getSpectrumMap(
+  io: any,
   socket: any,
   { roomId, player, playerName }: userData
-): void {
-  socket.to(roomId).emit("spectrum-map", {
-    spectrum: player.getlandSpectrum(),
-    playerName: playerName,
-  });
+) {
+  if ((await getSocketInstanceCount(io, roomId)) < 3) {
+    socket.to(roomId).emit("spectrum-map", {
+      spectrum: player.getlandSpectrum(),
+      playerName: playerName,
+    });
+  }
 }
 
 // CHECK THE GAME IF OVER FOR CURRENT SOCKET
@@ -73,7 +76,7 @@ export function getPlayerRole(players: any, playerName: any): string {
 export async function checkWinner(
   io: any,
   socket: any,
-  roomId: number | undefined,
+  roomId: string | undefined,
   multiplayer: boolean | undefined
 ): Promise<boolean> {
   if (multiplayer && (await getSocketInstanceCount(io, roomId)) < 2) {
@@ -127,6 +130,8 @@ export async function dropGameDoc(socket: any) {
       // DELETE THE GAME ROOM
       await GameModel.deleteOne({ roomId });
     }
+    socket.data.userData = null;
+    socket.data.gameData = null;
   }
 }
 

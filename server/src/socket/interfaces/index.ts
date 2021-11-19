@@ -1,6 +1,6 @@
 // INTERFACES
 export interface userData {
-  roomId?: number;
+  roomId?: string;
   roomTitle?: string;
   playerName?: string;
   player?: any;
