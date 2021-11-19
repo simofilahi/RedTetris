@@ -6,7 +6,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { PlayerDataContext } from ".";
-import { useContext } from "react";
+import React, { useContext } from "react";
 import volumeImg from "../../assets/img/volume.png";
 import muteImg from "../../assets/img/mute.png";
 import { ContextInt, SquareInt } from "./interfaces";

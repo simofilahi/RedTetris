@@ -1,5 +1,5 @@
 import { LeftHelperBoard, RightHelperBoard } from "./game_map_helper";
-import { useContext } from "react";
+import React, { useContext } from "react";
 import { PlayerDataContext } from ".";
 import { ContextInt, SquareInt } from "./interfaces";
 
