@@ -1,9 +1,9 @@
-import ShapesFactory, { shapesPools } from "../utils/shapesFactory";
-
+import { shapeFactoryInt } from "../utils/interfaces";
+const { shapesPools, ShapesFactory } = require("../utils/shapesFactory");
 const mongoose = require("mongoose");
 
 describe("Shapes Factory tests", () => {
-  let shapesFactory: ShapesFactory;
+  let shapesFactory: shapeFactoryInt;
   let poolId: string;
   let inexistantPoolId: string;
 

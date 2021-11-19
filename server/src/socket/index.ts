@@ -1,6 +1,4 @@
-import { clear } from "console";
-import Player from "../utils/Player";
-import ShapesFactory from "../utils/shapesFactory";
+const { Player } = require("../utils/Player");
 import { userData } from "./interfaces";
 import {
   checkGameOver,

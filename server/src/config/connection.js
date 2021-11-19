@@ -1,9 +1,4 @@
 const mongoose = require("mongoose");
-const path = require("path");
-const dotenv = require("dotenv");
-
-// LOAD ENV VARS
-dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 
 // DB CONNECTION
 const connect = () => {

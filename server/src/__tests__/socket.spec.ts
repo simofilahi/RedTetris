@@ -1,9 +1,12 @@
+import { userData } from "../socket/interfaces";
+import { Square } from "../utils/interfaces";
 const { userData } = require("../socket/interfaces");
 const connect = require("../config/connection");
 const socketListener = require("../socket");
 const { createServer } = require("http");
 const { Server } = require("socket.io");
 const Client = require("socket.io-client");
+const dotenv = require("dotenv");
 
 jest.setTimeout(5000);
 
@@ -12,6 +15,8 @@ function getSocketData(io: any, callback: any) {
     callback({ player_one: sockets[0], player_two: sockets[1] })
   );
 }
+// LOAD ENV VARS
+dotenv.config({ path: ".env" });
 
 describe("my awesome project", () => {
   let io: any,
@@ -61,7 +66,7 @@ describe("my awesome project", () => {
           multiplayer,
           gravityInterval,
           playerRole,
-        }: any
+        }: userData
       ) => {
         expect(error).toBe(false);
         expect(playerName).toEqual("anonymous");
@@ -221,7 +226,7 @@ describe("my awesome project", () => {
     expect(oldMap).toHaveLength(20);
 
     clientSocket_player_one.emit("down-key");
-    clientSocket_player_one.on("map", (newMap: any) => {
+    clientSocket_player_one.on("map", (newMap: Array<Array<Square>>) => {
       expect(newMap).toBeDefined();
       expect(newMap).toBeInstanceOf(Array);
       expect(newMap).toHaveLength(20);
@@ -238,7 +243,7 @@ describe("my awesome project", () => {
     expect(oldMap).toHaveLength(20);
 
     clientSocket_player_one.emit("left-key");
-    clientSocket_player_one.on("map", (newMap: any) => {
+    clientSocket_player_one.on("map", (newMap: Array<Array<Square>>) => {
       expect(newMap).toBeDefined();
       expect(newMap).toBeInstanceOf(Array);
       expect(newMap).toHaveLength(20);
@@ -254,7 +259,7 @@ describe("my awesome project", () => {
     expect(oldMap).toBeInstanceOf(Array);
     expect(oldMap).toHaveLength(20);
     clientSocket_player_one.emit("rotate");
-    clientSocket_player_one.on("map", (newMap: any) => {
+    clientSocket_player_one.on("map", (newMap: Array<Array<Square>>) => {
       expect(newMap).toBeDefined();
       expect(newMap).toBeInstanceOf(Array);
       expect(newMap).toHaveLength(20);
@@ -270,7 +275,7 @@ describe("my awesome project", () => {
     expect(oldMap).toBeInstanceOf(Array);
     expect(oldMap).toHaveLength(20);
     clientSocket_player_one.emit("right-key");
-    clientSocket_player_one.on("map", (newMap: any) => {
+    clientSocket_player_one.on("map", (newMap: Array<Array<Square>>) => {
       expect(newMap).toBeDefined();
       expect(newMap).toBeInstanceOf(Array);
       expect(newMap).toHaveLength(20);
@@ -286,7 +291,7 @@ describe("my awesome project", () => {
     expect(oldMap).toBeInstanceOf(Array);
     expect(oldMap).toHaveLength(20);
     clientSocket_player_one.emit("space-key");
-    clientSocket_player_one.on("map", (newMap: any) => {
+    clientSocket_player_one.on("map", (newMap: Array<Array<Square>>) => {
       expect(newMap).toBeDefined();
       expect(newMap).toBeInstanceOf(Array);
       expect(newMap).toHaveLength(20);
@@ -302,7 +307,7 @@ describe("my awesome project", () => {
     expect(oldMap).toBeInstanceOf(Array);
     expect(oldMap).toHaveLength(20);
     clientSocket_player_one.emit("space-key");
-    clientSocket_player_one.on("map", (newMap: any) => {
+    clientSocket_player_one.on("map", (newMap: Array<Array<Square>>) => {
       expect(newMap).toBeDefined();
       expect(newMap).toBeInstanceOf(Array);
       expect(newMap).toHaveLength(20);

@@ -1,10 +1,9 @@
-import Player from "../utils/Player";
-
-const mongoose = require("mongoose");
+const { Player } = require("../utils/Player");
+const mongo = require("mongoose");
 
 describe("Tests player class", () => {
-  const POOL_ID = new mongoose.Types.ObjectId().toString();
-  let player: Player = new Player(POOL_ID);
+  const POOL_ID = new mongo.Types.ObjectId().toString();
+  let player = new Player(POOL_ID);
 
   it("All rquired properties should be defined", () => {
     expect(player.shapesPoolId).toBeDefined();

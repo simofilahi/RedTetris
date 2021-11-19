@@ -1,9 +1,7 @@
-import Game from "./Game";
+const Game = require("./Game");
 
-class Player extends Game {
+exports.Player = class Player extends Game {
   constructor(shapesPoolId: string) {
     super(shapesPoolId);
   }
-}
-
-export default Player;
+};

@@ -1,4 +1,4 @@
-import ShapesFactory from "./shapesFactory";
+const { ShapesFactory } = require("./shapesFactory");
 import { Square, ShapeInterface, GameInt } from "./interfaces/index";
 
 class Game extends ShapesFactory implements GameInt {
@@ -492,4 +492,4 @@ class Game extends ShapesFactory implements GameInt {
   }
 }
 
-export default Game;
+module.exports = Game;

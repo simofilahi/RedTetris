@@ -14,7 +14,7 @@ import {
   SquareInt,
 } from "./interfaces";
 
-const socket = io("http://10.11.3.11:1337");
+const socket = io("http://localhost:1337");
 
 export const PlayerDataContext = React.createContext<ContextInt>({
   playerData: {},
@@ -57,7 +57,6 @@ const HomePage = () => {
       try {
         var url = window.location;
 
-        console.log({ url });
         const params = url.hash.split("#")[1].split("[");
 
         // GET THE TITLE ROOM FROM HASH URL

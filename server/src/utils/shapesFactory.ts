@@ -102,7 +102,7 @@ const shapes: any = {
   },
 };
 
-export let shapesPools: any = {};
+let shapesPools: any = {};
 
 class ShapesFactory implements shapeFactoryInt {
   constructor(poolId: string) {
@@ -173,4 +173,7 @@ class ShapesFactory implements shapeFactoryInt {
   };
 }
 
-export default ShapesFactory;
+module.exports = {
+  shapesPools,
+  ShapesFactory,
+};

@@ -7,14 +7,14 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { PlayerDataContext } from ".";
 import React, { useContext } from "react";
-import volumeImg from "../../assets/img/volume.png";
-import muteImg from "../../assets/img/mute.png";
-import { ContextInt, SquareInt } from "./interfaces";
+import volumeImg from "assets/img/volume.png";
+import muteImg from "assets/img/mute.png";
+import { ContextInt, SquareInt, PlayerDataInt } from "./interfaces";
 
 // RIGHT HELPER BOARD COMPONENTS
 
 // SPECTRUM MAP OF THE OPPONENT
-const SpectrumMapCmp = (SpectrumMap: any) => {
+const SpectrumMapCmp = (SpectrumMap: Array<Array<SquareInt>>) => {
   return (
     <div className="grid grid-cols-10">
       {SpectrumMap &&
@@ -67,11 +67,11 @@ const GravityCmp = () => {
   const editGravity = (e: any, arrowIcon: string) => {
     e.preventDefault();
     if (arrowIcon === "left") {
-      updatePlayerData((prevState: any) => {
+      updatePlayerData((prevState: PlayerDataInt) => {
         if (prevState?.gravityPropsIndex === 0) return prevState;
         return {
           ...prevState,
-          gravityPropsIndex: prevState.gravityPropsIndex - 1,
+          gravityPropsIndex: prevState.gravityPropsIndex! - 1,
         };
       });
 
@@ -82,12 +82,12 @@ const GravityCmp = () => {
           : gravityProps[0].duration
       );
     } else if (arrowIcon === "right") {
-      updatePlayerData((prevState: any) => {
+      updatePlayerData((prevState: PlayerDataInt) => {
         if (prevState?.gravityPropsIndex === 2) return prevState;
 
         return {
           ...prevState,
-          gravityPropsIndex: prevState.gravityPropsIndex + 1,
+          gravityPropsIndex: prevState.gravityPropsIndex! + 1,
         };
       });
       socket.emit(
@@ -136,7 +136,7 @@ const PauseAndStartCmp = () => {
     socket.emit("game-status", gameStatus);
     if (gameStatus === "pause") setPlaying(false);
     else setPlaying(true);
-    updatePlayerData((prevState: any) => {
+    updatePlayerData((prevState: PlayerDataInt) => {
       if (prevState.gameStatus === "pause")
         return { ...prevState, gameStatus: "resume" };
       else return { ...prevState, gameStatus: "pause" };
@@ -221,8 +221,8 @@ const PlayerNextShape = () => {
           <div
             className={`grid grid-cols-${playerData.playerNextShape.pieces[0].length} p-10 `}
           >
-            {playerData.playerNextShape.pieces?.map((row: any) => {
-              return row.map((col: any, index: any) => {
+            {playerData.playerNextShape.pieces?.map((row: Array<SquareInt>) => {
+              return row.map((col: SquareInt, index: number) => {
                 return (
                   <div
                     key={index}

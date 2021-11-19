@@ -1,10 +1,9 @@
-import Game from "../utils/Game";
-import { Square } from "../utils/interfaces";
-import { shapesPools } from "../utils/shapesFactory";
+const Game = require("../utils/Game");
+import { Square, GameInt } from "../utils/interfaces";
+const { ShapesFactory } = require("../utils/shapesFactory");
 const mongoose = require("mongoose");
 
-let game: Game;
-let gameMap: Array<Array<Square>> = [[]];
+let game: GameInt;
 let POOL_ID: string = "";
 
 export const colors = [
@@ -17,6 +16,7 @@ export const colors = [
   "#EF7920",
   "",
 ];
+
 export const values = ["0", "1", "2", "3", "4", "5", "6", "7", ".", "#"];
 export const statuses = ["active", "landed", ""];
 
@@ -130,7 +130,7 @@ describe("Game class tests", () => {
   });
 
   it("Should get the next shape from Shapes pool", () => {
-    const shapesPool = game.getShapesPool(POOL_ID);
+    const shapesPool = new ShapesFactory().getShapesPool(POOL_ID);
 
     console.log(shapesPool);
     const shape = game.getNextShape();

@@ -23,6 +23,7 @@ export interface shapeFactoryInt {
   addMoreShapeToPool(poolId: string): void;
   dropShapePool(poolId: string): void;
   getShape(poolId: string, index: number): ShapeInterface | null;
+  getShapesPool(poolId: string): Array<Array<ShapeInterface>> | null;
 }
 
 // GAME CLASS
@@ -78,7 +79,7 @@ export interface GameInt {
   nextShape: ShapeInterface | null;
 
   // GENERATE COLOS FOR THE MAP
-  colGenerator(square: Square): any;
+  colGenerator(square?: Square): any;
 
   // GENERATE ROWS FOR THE MAP
   rowGenerator(): any;
