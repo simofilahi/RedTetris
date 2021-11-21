@@ -114,20 +114,19 @@ async function joinToGame(
     // ADD CURRENT SOCKET TO A ROOM
     socket.join(roomId);
 
+    socket
+      .to(roomId)
+      .emit("player-joined-counter", await getSocketInstanceCount(io, roomId));
+
     socket.emit(
       "player-joined-counter",
       await getSocketInstanceCount(io, roomId)
     );
 
-    if (!firstPlayer) {
-      // BROADCAST TO OTHER PLAYER THAT SOMEONE HAS JOINED THE ROOM;
-      socket
-        .to(roomId)
-        .emit(
-          "player-joined-counter",
-          await getSocketInstanceCount(io, roomId)
-        );
-    }
+    // if (!firstPlayer) {
+    //   // BROADCAST TO OTHER PLAYER THAT SOMEONE HAS JOINED THE ROOM;
+
+    // }
 
     // SHARE THE DATA WITH THE CLIENT BY A CALLBACK
     cb(false, {
