@@ -132,7 +132,6 @@ describe("Game class tests", () => {
   it("Should get the next shape from Shapes pool", () => {
     const shapesPool = new ShapesFactory().getShapesPool(POOL_ID);
 
-    console.log(shapesPool);
     const shape = game.getNextShape();
     expect(shape).toBeDefined();
     expect(shape).toStrictEqual(shapesPool![1]);
@@ -150,7 +149,6 @@ describe("Game class tests", () => {
     game.instantDrop();
     game.clear();
     const updatedMap = game.getMap();
-    // console.log(updatedMap[updatedMap.length - 1]);
     expect(
       (() => {
         const row = updatedMap[updatedMap.length - 1];

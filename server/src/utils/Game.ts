@@ -150,7 +150,6 @@ class Game extends ShapesFactory implements GameInt {
 
     // ADD NEEDED ROWS TO NEW MAP
     for (; len > 0; len--) {
-      // console.log("inside dropRows loop");
       this.score += 10;
       newMap.unshift([...this.colGenerator()]);
     }

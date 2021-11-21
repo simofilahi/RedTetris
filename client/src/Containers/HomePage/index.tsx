@@ -14,7 +14,7 @@ import {
   SquareInt,
 } from "./interfaces";
 
-const socket = io("http://localhost:1337");
+const socket = io("http://10.11.3.13:1337");
 
 export const PlayerDataContext = React.createContext<ContextInt>({
   playerData: {},
@@ -39,6 +39,7 @@ const HomePage = () => {
 
   // KEYBOARD EVENT KEY HANDLER
   function getKey(e: any) {
+    console.log(e.keyCode);
     if (e.keyCode === 39) socket.emit("right-key");
     else if (e.keyCode === 37) socket.emit("left-key");
     else if (e.keyCode === 40) {
@@ -47,6 +48,19 @@ const HomePage = () => {
       socket.emit("space-key");
     } else if (e.keyCode === 38) {
       socket.emit("rotate");
+    } else if (e.keyCode === 27) {
+      updatePlayerData((prevState: PlayerDataInt) => {
+        const gameStatus =
+          prevState?.gameStatus === "resume" ? "pause" : "resume";
+        console.log({ gameStatus });
+        socket.emit("game-status", gameStatus);
+        if (gameStatus === "pause") setPlaying(false);
+        else setPlaying(true);
+        console.log({ prevState: prevState });
+        if (prevState.gameStatus === "pause")
+          return { ...prevState, gameStatus: "resume" };
+        else return { ...prevState, gameStatus: "pause" };
+      });
     }
   }
 
@@ -70,7 +84,7 @@ const HomePage = () => {
         // THE GAME WILL BE MUTLIPLAYER
         multiplayer = true;
       } catch {
-        console.log({ multiplayer });
+        // console.log({ multiplayer });
       }
 
       // JOIN TO THE GAME ROOM
@@ -104,7 +118,6 @@ const HomePage = () => {
 
       // THIS EVENT WILL TRIGGER IN CASE ANOTHER PLAYER DROP SOME ROWS IN HIS MAP
       socket.on("add-unusable-rows", (rowsCount: number) => {
-        console.log("one");
         socket.emit("add-unusable-rows", rowsCount);
       });
 
@@ -119,11 +132,10 @@ const HomePage = () => {
       socket.on(
         "spectrum-map",
         (icomingSpectrumData: opponentSpecturmMapInt) => {
-          console.log({ icomingSpectrumData });
+          // console.log({ icomingSpectrumData });
           updatePlayerData((prevState: any) => {
             let newState;
             if (!prevState?.opponentSpecturmMap) {
-              console.log("1");
               newState = {
                 ...prevState,
                 opponentSpecturmMap: [icomingSpectrumData],

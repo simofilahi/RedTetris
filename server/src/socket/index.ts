@@ -179,37 +179,114 @@ async function orderToStartTheGameByLeader(socket: any) {
 
 // START TH GAME FOR ALL PLAYERS JOINED TO THE SAME GAME
 async function StartGame(socket: any, io: any) {
-  const delay = (ms: number) =>
-    new Promise((resolve) => setTimeout(resolve, ms));
+  if (socket.data.userData && socket.data.gameData) {
+    const delay = (ms: number) =>
+      new Promise((resolve) => setTimeout(resolve, ms));
 
-  for (;;) {
-    if (socket?.data?.userData && socket?.data?.gameData) {
-      const {
-        playerName,
-        roomId,
-        multiplayer,
-        gravityInterval,
-        gameStatus,
-      }: userData = socket.data.userData;
+    for (;;) {
+      if (socket?.data?.userData && socket?.data?.gameData) {
+        const {
+          playerName,
+          roomId,
+          multiplayer,
+          gravityInterval,
+          gameStatus,
+        }: userData = socket.data.userData;
 
-      const { player } = socket.data.gameData;
-      console.log({ multiplayer });
+        const { player } = socket.data.gameData;
 
-      if (gameStatus === "pause") break;
-      await delay(gravityInterval || 1000);
+        if (gameStatus === "pause") break;
+        await delay(gravityInterval || 1000);
 
-      // CHECK IF CURRENT PLAYER LOSES
+        // CHECK IF CURRENT PLAYER LOSES
+        if (await checkGameOver(socket, { player, roomId })) {
+          return;
+        }
+
+        // CHECK THE GAME WINNER
+        if (await checkWinner(io, socket, roomId, multiplayer)) {
+          return;
+        }
+
+        // GET THE NEXT TETRIS SHAPE AND SEND IT TO THE CURRENT PLAYER
+        getNextShape(socket, player);
+
+        // MOVE THE TETRIS SHAPE DOWN IN PALYER MAP
+        player.moveDown();
+
+        // CHECK IF SOME ROWS OF CURRENT PLAYER'S DROPPED
+        droppedRows(socket, { player, roomId });
+
+        // GET THE  MAP AND SEND IT TO OTHER PLAYER IN THE SAME ROOM
+        getMap(socket, player);
+
+        // GET THE THE SCORE AND SEND IT TO THE CURRENT PLAYER
+        getScore(socket, player);
+
+        // GET THE DROPPED LINES AND SENT IT TO THE CURRENT PLAYER
+        getDroppedLineCount(socket, player);
+
+        // GET THE SPECTRUM MAP OF CURRENT PLAYER AND SEND IT TO OTHER PLAYER IN THE SAME ROOM
+        getSpectrumMap(io, socket, { player, playerName, roomId });
+      } else {
+        return;
+      }
+    }
+  }
+}
+
+// MOVE SHAPE TO THE LEFT
+function moveToleft(socket: any) {
+  if (socket.data.userData && socket.data.gameData) {
+    const { player } = socket.data.gameData;
+
+    // CHECK IF PLAYER INSTANCE EXIST
+    if (player) {
+      // MOVE TETRIS SHAPE OF CURRENT PLAYER'S MAP TO THE LEFT
+      player.moveToLeft();
+
+      //  GET THE UPDATED MAP AND SEND IT BACK TO THE CURRENT PLAYER
+      socket.emit("map", player.getMap());
+    }
+  }
+}
+
+// MOVE SHAPE TO THE RIGHT
+function moveToRight(socket: any) {
+  if (socket.data.userData && socket.data.gameData) {
+    const { player } = socket.data.gameData;
+
+    // CHECK IF PLAYER INSTANCE EXIST
+    if (player) {
+      // MOVE TETRIS SHAPE OF CURRENT PLAYER'S MAP TO THE RIGHT
+      player.moveToRight();
+
+      // GET THE UPDATED MAP AND SEND IT BACK TO THE CURRENT PLAYER
+      socket.emit("map", player.getMap());
+    }
+  }
+}
+
+// MOVE SHAPE DOWN
+async function moveDown(socket: any, io: any) {
+  if (socket.data.userData && socket.data.gameData) {
+    const { playerName, roomId, multiplayer } = socket.data.userData;
+    const { player } = socket.data.gameData;
+
+    // CHECK IF PLAYER INSTANCE EXIST
+    if (player) {
+      // PLAYER MOVE TETRIS SHAPE DOWN IN ITS MAP
+      player.moveDown();
+
+      // CHECK THE MAP OF CURRENT PLAYER IS IT FULL
       if (await checkGameOver(socket, { player, roomId })) {
         return;
       }
 
-      // CHECK THE GAME WINNER
+      // CHECK THE WINNER OF GAME
       if (await checkWinner(io, socket, roomId, multiplayer)) {
         return;
       }
-
-      // GET THE NEXT TETRIS SHAPE AND SEND IT TO THE CURRENT PLAYER
-      getNextShape(socket, player);
 
       // MOVE THE TETRIS SHAPE DOWN IN PALYER MAP
       player.moveDown();
@@ -226,170 +303,110 @@ async function StartGame(socket: any, io: any) {
       // GET THE DROPPED LINES AND SENT IT TO THE CURRENT PLAYER
       getDroppedLineCount(socket, player);
 
+      // GET THE NEXT TETRIS SHAPE AND SEND IT TO THE CURRENT PLAYER
+      getNextShape(socket, player);
+
       // GET THE SPECTRUM MAP OF CURRENT PLAYER AND SEND IT TO OTHER PLAYER IN THE SAME ROOM
       getSpectrumMap(io, socket, { player, playerName, roomId });
-    } else {
-      return;
     }
-  }
-}
-
-// MOVE SHAPE TO THE LEFT
-function moveToleft(socket: any) {
-  const { player } = socket.data.gameData;
-
-  // CHECK IF PLAYER INSTANCE EXIST
-  if (player) {
-    // MOVE TETRIS SHAPE OF CURRENT PLAYER'S MAP TO THE LEFT
-    player.moveToLeft();
-
-    //  GET THE UPDATED MAP AND SEND IT BACK TO THE CURRENT PLAYER
-    socket.emit("map", player.getMap());
-  }
-}
-
-// MOVE SHAPE TO THE RIGHT
-function moveToRight(socket: any) {
-  const { player } = socket.data.gameData;
-
-  // CHECK IF PLAYER INSTANCE EXIST
-  if (player) {
-    // MOVE TETRIS SHAPE OF CURRENT PLAYER'S MAP TO THE RIGHT
-    player.moveToRight();
-
-    // GET THE UPDATED MAP AND SEND IT BACK TO THE CURRENT PLAYER
-    socket.emit("map", player.getMap());
-  }
-}
-
-// MOVE SHAPE DOWN
-async function moveDown(socket: any, io: any) {
-  const { playerName, roomId, multiplayer } = socket.data.userData;
-  const { player } = socket.data.gameData;
-
-  // CHECK IF PLAYER INSTANCE EXIST
-  if (player) {
-    // PLAYER MOVE TETRIS SHAPE DOWN IN ITS MAP
-    player.moveDown();
-
-    // CHECK THE MAP OF CURRENT PLAYER IS IT FULL
-    if (await checkGameOver(socket, { player, roomId })) {
-      return;
-    }
-
-    // CHECK THE WINNER OF GAME
-    if (await checkWinner(io, socket, roomId, multiplayer)) {
-      return;
-    }
-
-    // MOVE THE TETRIS SHAPE DOWN IN PALYER MAP
-    player.moveDown();
-
-    // CHECK IF SOME ROWS OF CURRENT PLAYER'S DROPPED
-    droppedRows(socket, { player, roomId });
-
-    // GET THE  MAP AND SEND IT TO OTHER PLAYER IN THE SAME ROOM
-    getMap(socket, player);
-
-    // GET THE THE SCORE AND SEND IT TO THE CURRENT PLAYER
-    getScore(socket, player);
-
-    // GET THE DROPPED LINES AND SENT IT TO THE CURRENT PLAYER
-    getDroppedLineCount(socket, player);
-
-    // GET THE NEXT TETRIS SHAPE AND SEND IT TO THE CURRENT PLAYER
-    getNextShape(socket, player);
-
-    // GET THE SPECTRUM MAP OF CURRENT PLAYER AND SEND IT TO OTHER PLAYER IN THE SAME ROOM
-    getSpectrumMap(io, socket, { player, playerName, roomId });
   }
 }
 
 // ADD NEW ROWS TO THE MAP
 function AddLines(socket: any, rowsCount: number) {
-  const { player } = socket.data.gameData;
-  const { roomId, playerName }: userData = socket.data.userData;
+  if (socket.data.userData && socket.data.gameData) {
+    const { player } = socket.data.gameData;
+    const { roomId, playerName }: userData = socket.data.userData;
 
-  // CHECK IF PLAYER INSTANCE EXIST AND COUNT OF DROP LINES GREATER THAN 0
-  if (rowsCount && player) {
-    console.log({ rowsCount });
+    // CHECK IF PLAYER INSTANCE EXIST AND COUNT OF DROP LINES GREATER THAN 0
+    if (rowsCount && player) {
+      console.log({ rowsCount });
 
-    // ADD ROW COUNT TO THE MAP OF OTHER PLAYER
-    player.addRows(rowsCount);
+      // ADD ROW COUNT TO THE MAP OF OTHER PLAYER
+      player.addRows(rowsCount);
 
-    // GET THE UPDATED MAP AND SEND IT TO THE PLAYER
-    socket.emit("map", player.getMap());
+      // GET THE UPDATED MAP AND SEND IT TO THE PLAYER
+      socket.emit("map", player.getMap());
 
-    /* GET THE SPECTRUM MAP OF THE CURRENT PLAYER 
+      /* GET THE SPECTRUM MAP OF THE CURRENT PLAYER 
     AND SEND IT TO ALL OTHER PLAYER IN THE SAME ROOM JOINED */
-    socket.to(roomId).emit("spectrum-map", {
-      spectrum: player.getlandSpectrum(),
-      playerName: playerName,
-    });
+      socket.to(roomId).emit("spectrum-map", {
+        spectrum: player.getlandSpectrum(),
+        playerName: playerName,
+      });
+    }
   }
 }
 
 // HANDLING ROTATTION SOCKET EVENT
 function rotate(socket: any) {
-  const { player } = socket.data.gameData;
+  if (socket.data.userData && socket.data.gameData) {
+    const { player } = socket.data.gameData;
 
-  // CHECK IF PLAYER INSTANCE EXIST
-  if (player) {
-    // PLAYER ROTATE THE SHAPE
-    player.rotate();
+    // CHECK IF PLAYER INSTANCE EXIST
+    if (player) {
+      // PLAYER ROTATE THE SHAPE
+      player.rotate();
 
-    // GET THE NEW UPDATED MAP AND SEND IT BACK TO THE PLAYER
-    socket.emit("map", player.getMap());
+      // GET THE NEW UPDATED MAP AND SEND IT BACK TO THE PLAYER
+      socket.emit("map", player.getMap());
+    }
   }
 }
 
 // EDIT GRAVITY DURATION
 function garvitySetting(socket: any, duration: number) {
-  const { multiplayer } = socket.data.userData;
+  if (socket.data.userData && socket.data.gameData) {
+    const { multiplayer } = socket.data.userData;
 
-  // VERIFY FOR THE GAME IS NOT A MULTIPLAYER, THEN UPDATE THE GRAVITY INTERVAL
-  if (!multiplayer) socket.data.userData.gravityInterval = duration;
+    // VERIFY FOR THE GAME IS NOT A MULTIPLAYER, THEN UPDATE THE GRAVITY INTERVAL
+    if (!multiplayer) socket.data.userData.gravityInterval = duration;
+  }
 }
 
 // PAUSE AND RESUME THE GAME
 function resumeOrPauseTheGame(socket: any, io: any, gameStatus: string) {
-  const { multiplayer } = socket.data.userData;
+  if (socket.data.userData && socket.data.gameData) {
+    const { multiplayer } = socket.data.userData;
 
-  // VERIFY FOR THE GAME IS NOT A MULTIPLAYER, THEN PAUSE OR RESUME THE GAME
-  if (!multiplayer) socket.data.userData.gameStatus = gameStatus;
+    // VERIFY FOR THE GAME IS NOT A MULTIPLAYER, THEN PAUSE OR RESUME THE GAME
+    if (!multiplayer) socket.data.userData.gameStatus = gameStatus;
 
-  // console.log("STATUS ", socket.data.userData.gameStatus);
-  if (gameStatus === "resume") StartGame(socket, io);
+    // console.log("STATUS ", socket.data.userData.gameStatus);
+    if (gameStatus === "resume") StartGame(socket, io);
+  }
 }
 
 // HANDLING INSTANT DROP OF CURRENT SHPE
 function instantDrop(io: any, socket: any) {
-  const { playerName, roomId }: userData = socket.data.userData;
+  if (socket.data.userData && socket.data.gameData) {
+    const { playerName, roomId }: userData = socket.data.userData;
 
-  const { player } = socket.data.gameData;
+    const { player } = socket.data.gameData;
 
-  // CHECK IF PLAYER INSTANCE EXIST
-  if (player) {
-    // MOVE TETRIS SHAPE OF CURRENT PLAYER'S MAP TO THE LEFT
-    player.instantDrop();
+    // CHECK IF PLAYER INSTANCE EXIST
+    if (player) {
+      // MOVE TETRIS SHAPE OF CURRENT PLAYER'S MAP TO THE LEFT
+      player.instantDrop();
 
-    // CHECK IF SOME ROWS OF CURRENT PLAYER'S DROPPED
-    droppedRows(socket, { player, roomId });
+      // CHECK IF SOME ROWS OF CURRENT PLAYER'S DROPPED
+      droppedRows(socket, { player, roomId });
 
-    // GET THE  MAP AND SEND IT TO OTHER PLAYER IN THE SAME ROOM
-    getMap(socket, player);
+      // GET THE  MAP AND SEND IT TO OTHER PLAYER IN THE SAME ROOM
+      getMap(socket, player);
 
-    // GET THE THE SCORE AND SEND IT TO THE CURRENT PLAYER
-    getScore(socket, player);
+      // GET THE THE SCORE AND SEND IT TO THE CURRENT PLAYER
+      getScore(socket, player);
 
-    // GET THE DROPPED LINES AND SENT IT TO THE CURRENT PLAYER
-    getDroppedLineCount(socket, player);
+      // GET THE DROPPED LINES AND SENT IT TO THE CURRENT PLAYER
+      getDroppedLineCount(socket, player);
 
-    // GET THE NEXT TETRIS SHAPE AND SEND IT TO THE CURRENT PLAYER
-    getNextShape(socket, player);
+      // GET THE NEXT TETRIS SHAPE AND SEND IT TO THE CURRENT PLAYER
+      getNextShape(socket, player);
 
-    // GET THE SPECTRUM MAP AND SEND IT TO OTHER PLAYER IN THE SAME ROOM
-    getSpectrumMap(io, socket, { player, playerName, roomId });
+      // GET THE SPECTRUM MAP AND SEND IT TO OTHER PLAYER IN THE SAME ROOM
+      getSpectrumMap(io, socket, { player, playerName, roomId });
+    }
   }
 }
 
@@ -446,7 +463,7 @@ function socketListener(io: any) {
 
       // IF SOCKET CLIENT DISCOONECTED
       socket.on("disconnect", () => {
-        dropGameDoc(socket);
+        dropGameDoc(io, socket);
       });
 
       // EDIT GRAVITY DURATION

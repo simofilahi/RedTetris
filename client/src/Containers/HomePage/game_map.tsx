@@ -5,13 +5,17 @@ import { ContextInt, SquareInt } from "./interfaces";
 
 // BUTTON TO START THE GAME THIS WILL APPEAR JUST FOR LEADER
 const StartGameBtn = () => {
-  const { socket }: ContextInt = useContext(PlayerDataContext);
+  const { socket, playerData }: ContextInt = useContext(PlayerDataContext);
   return (
     <div
       className="bg-white h-12 w-52 text-black flex justify-center cursor-pointer items-center font-bold text-lg"
       onClick={(e) => {
         e.preventDefault();
-        socket.emit("start-order");
+        if (playerData?.joinedPlayersCount! > 1 && playerData?.multiplayer) {
+          socket.emit("start-order");
+        } else if (!playerData?.multiplayer) {
+          socket.emit("start-order");
+        }
       }}
     >
       Start Game
@@ -28,7 +32,7 @@ const MapBody = () => {
         <div className="p-2">
           Role: you are the {playerData.playerRole ? playerData.playerRole : ""}
         </div>
-        {StartGameBtn()}
+        <StartGameBtn />
       </div>
     );
   } else if (!playerData?.playerLand?.length) {
@@ -52,7 +56,7 @@ const MapRender = () => {
     return (
       <>
         {playerData.playerLand.map((row: Array<SquareInt>) => {
-          console.log({ row });
+          // console.log({ row });
           return row.map((col: SquareInt, index: number) => {
             if (col.value === "#") {
               return <div key={index} className="bg-white"></div>;

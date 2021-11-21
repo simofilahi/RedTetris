@@ -243,7 +243,9 @@ export const RightHelperBoard = () => {
 const PlayerNextShape = () => {
   const { playerData }: ContextInt = useContext(PlayerDataContext);
 
+  console.log({ playerNextShape: playerData?.playerNextShape });
   if (playerData?.playerNextShape) {
+    let colNum = playerData.playerNextShape.pieces[0].length;
     return (
       <div className="h-96  w-4/5 flex flex-col py-5">
         <div className="py-1 border-white border-2 flex ">
@@ -251,10 +253,22 @@ const PlayerNextShape = () => {
         </div>
         <div className="flex-1 w-full border-white border-2 justify-center items-center flex">
           <div
-            className={`grid grid-cols-${playerData.playerNextShape.pieces[0].length} p-10 `}
+            style={{
+              display: "grid",
+              gridTemplateColumns: `repeat(${colNum}, 0fr)`,
+            }}
           >
             {playerData.playerNextShape.pieces?.map((row: Array<SquareInt>) => {
               return row.map((col: SquareInt, index: number) => {
+                if (col.color === "") {
+                  return (
+                    <div
+                      key={index}
+                      className="p-5"
+                      style={{ backgroundColor: "" }}
+                    ></div>
+                  );
+                }
                 return (
                   <div
                     key={index}
