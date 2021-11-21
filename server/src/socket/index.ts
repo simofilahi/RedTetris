@@ -39,9 +39,6 @@ async function joinToGame(
     // ROOM ID
     let roomId: string;
 
-    // FLAG
-    let firstPlayer: boolean = true;
-
     // IN CASE NO GAME FOUND WITH GIVEN NAME
     if (!game?.length) {
       // CREATE DB DOC
@@ -84,8 +81,6 @@ async function joinToGame(
         { $push: { players: { name: playerName } } },
         { new: true }
       );
-
-      firstPlayer = false;
     }
     // GET THE ROOM_ID FROM THE DOC
     roomId = doc._id.toString();
@@ -118,15 +113,11 @@ async function joinToGame(
       .to(roomId)
       .emit("player-joined-counter", await getSocketInstanceCount(io, roomId));
 
+    // BROADCAST TO OTHER PLAYER THAT SOMEONE HAS JOINED THE ROOM;
     socket.emit(
       "player-joined-counter",
       await getSocketInstanceCount(io, roomId)
     );
-
-    // if (!firstPlayer) {
-    //   // BROADCAST TO OTHER PLAYER THAT SOMEONE HAS JOINED THE ROOM;
-
-    // }
 
     // SHARE THE DATA WITH THE CLIENT BY A CALLBACK
     cb(false, {

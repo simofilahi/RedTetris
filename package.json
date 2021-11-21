@@ -1,21 +1,10 @@
 {
+  "name": "redtetris",
+  "version": "1.0.0",
+  "description": "",
   "scripts": {
-    "test": "jest --verbose --coverage"
+    "start": "cd client && npm run build && cd ../server && npm start"
   },
-  "devDependencies": {
-    "@types/jest": "^27.0.2",
-    "jest": "^27.3.1",
-    "ts-jest": "^27.0.7"
-  },
-  "dependencies": {
-    "@babel/core": "^7.16.0",
-    "@babel/preset-env": "^7.16.0",
-    "@babel/preset-typescript": "^7.16.0",
-    "babel-jest": "^27.3.1",
-    "dotenv": "^10.0.0",
-    "mongoose": "^6.0.12",
-    "socket.io": "^4.3.2",
-    "socket.io-client": "^4.3.2",
-    "typescript": "^4.4.4"
-  }
+  "author": "[mfilahi, ielmoudn]",
+  "license": "ISC"
 }
