@@ -60,7 +60,7 @@ export async function checkGameOver(
         socket.data.gameData = null;
         socket.data.userData = null;
       } else {
-        await DropGameDocByLoser(io, socket);
+        await DropGameDocInSoloMode(io, socket);
       }
 
       return true;
@@ -187,7 +187,7 @@ export async function dropGameDoc(io: any, socket: any) {
 }
 
 // DROP THE GAME BY LOSER
-export async function DropGameDocByLoser(io: any, socket: any) {
+export async function DropGameDocInSoloMode(io: any, socket: any) {
   try {
     const { roomId } = socket.data.userData;
 
