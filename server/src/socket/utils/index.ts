@@ -28,38 +28,47 @@ export async function getSpectrumMap(
 
 // CHECK THE GAME IF OVER FOR CURRENT SOCKET
 export async function checkGameOver(
+  io: any,
   socket: any,
   { player, roomId }: userData
 ): Promise<boolean> {
-  if (player.gameOver && socket.data.userData && socket.data.gameData) {
-    const { playerName } = socket.data.userData;
-    // SEND TO THE CURRENT PLAYER GAME OVER
-    socket.emit("gameOver", true);
+  try {
+    if (socket.data.userData && socket.data.gameData && player.gameOver) {
+      const { playerName, multiplayer } = socket.data.userData;
+      // SEND TO THE CURRENT PLAYER GAME OVER
+      socket.emit("gameOver", true);
 
-    // SET LEADER PROP IN DB
-    const game = await GameModel.findOne({
-      _id: roomId,
-    });
+      if (multiplayer) {
+        // SET LEADER PROP IN DB
+        const game = await GameModel.findOne({
+          _id: roomId,
+        });
 
-    if (game) {
-      game.players.forEach((player: any) => {
-        if (player.name === playerName) {
-          player.role = "follower";
+        if (game) {
+          game.players.forEach((player: any) => {
+            if (player.name === playerName) {
+              player.role = "follower";
+            }
+          });
+          await game.save();
         }
-      });
-      await game.save();
+
+        // LEAVE THIS PLAYER FROM GAME ROOM
+        socket.leave(roomId);
+
+        // RESET THE GAME DATA FOR THAT CURRENT PLAYER TO NULL
+        socket.data.gameData = null;
+        socket.data.userData = null;
+      } else {
+        await DropGameDocByLoser(io, socket);
+      }
+
+      return true;
     }
-
-    // LEAVE THIS PLAYER FROM GAME ROOM
-    socket.leave(roomId);
-
-    // RESET THE GAME DATA FOR THAT CURRENT PLAYER TO NULL
-    socket.data.gameData = null;
-    socket.data.userData = null;
-
-    return true;
+    return false;
+  } catch (e) {
+    return false;
   }
-  return false;
 }
 
 // CHECK IF SOME ROWS OF CURRENT PLAYER'S DROPPED
@@ -94,44 +103,44 @@ export async function checkWinner(
   roomId: string | undefined,
   multiplayer: boolean | undefined
 ): Promise<boolean> {
-  if (socket.data.userData && socket.data.gameData) {
-    const { playerName } = socket.data.userData;
-    if (multiplayer && (await getSocketInstanceCount(io, roomId)) < 2) {
-      // SEND WINNER
-      socket.emit("winner");
+  try {
+    if (socket.data.userData && socket.data.gameData) {
+      const { playerName } = socket.data.userData;
+      if (multiplayer && (await getSocketInstanceCount(io, roomId)) < 2) {
+        // SEND WINNER
+        socket.emit("winner");
 
-      // SET LEADER PROP IN DB
-      const game = await GameModel.findOne({
-        _id: roomId,
-      });
-
-      if (game) {
-        game.players.forEach((player: any) => {
-          if (player.name === playerName) {
-            player.role = "leader";
-          }
+        // SET LEADER PROP IN DB
+        const game = await GameModel.findOne({
+          _id: roomId,
         });
-        await game.save();
-        await GameModel.findOneAndUpdate(
-          { _id: roomId },
-          { state: "finished" }
-        );
+
+        if (game) {
+          game.players.forEach((player: any) => {
+            if (player.name === playerName) {
+              player.role = "leader";
+            }
+          });
+          await game.save();
+          await GameModel.findOneAndUpdate(
+            { _id: roomId },
+            { state: "finished" }
+          );
+        }
+
+        // CURRENT PLAYER LEAVE THE ROOM
+        socket.leave(roomId);
+
+        // RESET THE GAME DATA FOR THAT CURRENT PLAYER TO NULL
+        socket.data.gameData.player = null;
+
+        return true;
       }
-
-      // CURRENT PLAYER LEAVE THE ROOM
-      socket.leave(roomId);
-
-      // RESET THE GAME DATA FOR THAT CURRENT PLAYER TO NULL
-      socket.data.gameData.player = null;
-
-      // DROP THE GAME DOC
-      // dropGameDocByWinner(socket);
-
-      return true;
     }
     return false;
+  } catch (e) {
+    return false;
   }
-  return false;
 }
 
 // GET THE MAP OF CURRENT OF CURRENT PLAYER
@@ -156,22 +165,34 @@ export async function getNextShape(socket: any, player: any) {
 
 // DROP THE GAME DOC AT THE END
 export async function dropGameDoc(io: any, socket: any) {
-  if (socket.data.userData) {
+  try {
+    if (socket.data.userData) {
+      const { roomId } = socket.data.userData;
+      let socketCount = 0;
+      // LOOF FOR HOW MANY INSTANCES IN A SOCKET ROOM
+      if ((socketCount = await getSocketInstanceCount(io, roomId)) === 0) {
+        // FIND THE GAME ROOM DOC
+        const game = await GameModel.findOne({ roomId });
+        if (game) {
+          // DROP GAME DOC
+          await GameModel.deleteOne({ roomId });
+        }
+      }
+      socket.to(roomId).emit("player-joined-counter", socketCount);
+      // RESET DATA OF SOCKET
+      socket.socket.data.userData = null;
+      socket.data.gameData = null;
+    }
+  } catch (e) {}
+}
+
+// DROP THE GAME BY LOSER
+export async function DropGameDocByLoser(io: any, socket: any) {
+  try {
     const { roomId } = socket.data.userData;
 
-    // LOOF FOR HOW MANY INSTANCES IN A SOCKET ROOM
-    if ((await getSocketInstanceCount(io, roomId)) === 0) {
-      // FIND THE GAME ROOM DOC
-      const game = await GameModel.findOne({ roomId });
-      if (game) {
-        // DROP GAME DOC
-        await GameModel.deleteOne({ roomId });
-      }
-    }
-    // RESET DATA OF SOCKET
-    socket.data.userData = null;
-    socket.data.gameData = null;
-  }
+    await GameModel.deleteOne({ roomId });
+  } catch {}
 }
 
 // DROP THE GAME DOC AT THE END BY WINNER

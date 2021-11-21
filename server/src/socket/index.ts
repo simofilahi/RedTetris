@@ -147,34 +147,36 @@ async function joinToGame(
 async function orderToStartTheGameByLeader(socket: any) {
   const { playerName, roomTitle, roomId }: userData = socket.data.userData;
 
-  // LOOK FOR GAME NAME IF IT'S ALREADY CREATED IN DB
-  let game = await GameModel.findOne({ _id: roomId });
+  try {
+    // LOOK FOR GAME NAME IF IT'S ALREADY CREATED IN DB
+    let game = await GameModel.findOne({ _id: roomId });
 
-  // INCOMING USER ORDER EVENT SHOULD MATCH THE FRIST ONE WHO JOINED THE GAME
+    // INCOMING USER ORDER EVENT SHOULD MATCH THE FRIST ONE WHO JOINED THE GAME
 
-  if (game) {
-    game.players.forEach(async (player: any) => {
-      if (player.name === playerName && player.role === "leader") {
-        // UPDATE STATE OF GAME IN DB
-        game = await GameModel.findByIdAndUpdate(
-          roomId,
-          { state: "started" },
-          { new: true }
-        );
+    if (game) {
+      game.players.forEach(async (player: any) => {
+        if (player.name === playerName && player.role === "leader") {
+          // UPDATE STATE OF GAME IN DB
+          game = await GameModel.findByIdAndUpdate(
+            roomId,
+            { state: "started" },
+            { new: true }
+          );
 
-        if (game.state === "started") {
-          // EMIT GAME STARTD EVENT TO ALL PLAYERS JOINED TO THE GAME ROOM ID EXCEPT THE LEADER
-          socket.to(game._id.toString()).emit("game-started");
+          if (game.state === "started") {
+            // EMIT GAME STARTD EVENT TO ALL PLAYERS JOINED TO THE GAME ROOM ID EXCEPT THE LEADER
+            socket.to(game._id.toString()).emit("game-started");
 
-          // EMIT GAME STARTD EVENT TO THE LEADER
-          socket.emit("game-started");
+            // EMIT GAME STARTD EVENT TO THE LEADER
+            socket.emit("game-started");
 
-          // SET GAMESTATUS TO STARTED
-          socket.data.userData.gameStatus = "started";
+            // SET GAMESTATUS TO STARTED
+            socket.data.userData.gameStatus = "started";
+          }
         }
-      }
-    });
-  }
+      });
+    }
+  } catch (e) {}
 }
 
 // START TH GAME FOR ALL PLAYERS JOINED TO THE SAME GAME
@@ -199,7 +201,7 @@ async function StartGame(socket: any, io: any) {
         await delay(gravityInterval || 1000);
 
         // CHECK IF CURRENT PLAYER LOSES
-        if (await checkGameOver(socket, { player, roomId })) {
+        if (await checkGameOver(io, socket, { player, roomId })) {
           return;
         }
 
@@ -279,7 +281,7 @@ async function moveDown(socket: any, io: any) {
       player.moveDown();
 
       // CHECK THE MAP OF CURRENT PLAYER IS IT FULL
-      if (await checkGameOver(socket, { player, roomId })) {
+      if (await checkGameOver(io, socket, { player, roomId })) {
         return;
       }
 
