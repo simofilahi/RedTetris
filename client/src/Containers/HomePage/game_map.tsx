@@ -87,7 +87,7 @@ const GameMap = () => {
     return (
       <div
         className="flex justify-center items-center border-white border-2"
-        style={{ width: "50%" }}
+        style={{ width: "30%" }}
       >
         <MapBody />
       </div>
@@ -96,7 +96,7 @@ const GameMap = () => {
     return (
       <div
         className=" grid grid-cols-10 border-white border-2 "
-        style={{ width: "50%" }}
+        style={{ width: "30%" }}
       >
         <MapRender />
       </div>

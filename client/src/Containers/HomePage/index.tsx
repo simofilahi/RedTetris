@@ -14,7 +14,7 @@ import {
   SquareInt,
 } from "./interfaces";
 
-const socket = io("http://10.11.3.13:1337");
+const socket = io("http://localhost:1337");
 
 export const PlayerDataContext = React.createContext<ContextInt>({
   playerData: {},
