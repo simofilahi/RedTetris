@@ -5,7 +5,7 @@ this project is a multiplayer tetris game built for the browser
 
 ## Technologies
 - ReactJs
-- Styled Component
+- Tailwind
 - Socket.io client/server
 - NodeJS
 - Express
